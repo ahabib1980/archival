@@ -9,6 +9,7 @@
  */
 package org.openmrs.module.archival;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -32,7 +33,19 @@ import org.openmrs.EncounterProvider;
 public class ArchivedEncounterProvider extends BaseOpenmrsData {
 	
 	public ArchivedEncounterProvider(EncounterProvider ep) {
-		// TODO Fill this out
+		this.setEncounterId(ep.getEncounter().getEncounterId());
+		this.setEncounterProviderId(ep.getEncounterProviderId());
+		this.setEncounterRoleId(ep.getEncounterRole().getId());
+		this.setProviderId(ep.getProvider().getProviderId());
+		this.setUuid(this.getUuid());
+		this.setChangedBy(ep.getChangedBy());
+		this.setCreator(ep.getCreator());
+		this.setDateChanged(ep.getDateChanged());
+		this.setDateCreated(ep.getDateCreated());
+		this.setDateVoided(ep.getDateVoided());
+		this.setVoided(ep.getVoided());
+		this.setVoidedBy(ep.getVoidedBy());
+		this.setVoidReason(ep.getVoidReason());
 	}
 	
 	@Override
@@ -55,9 +68,73 @@ public class ArchivedEncounterProvider extends BaseOpenmrsData {
 		this.archivalEncounterProviderId = archivalEncounterProviderId;
 	}
 	
+	public Integer getEncounterProviderId() {
+		return encounterProviderId;
+	}
+	
+	public void setEncounterProviderId(Integer encounterProviderId) {
+		this.encounterProviderId = encounterProviderId;
+	}
+	
+	public Integer getEncounterId() {
+		return encounterId;
+	}
+	
+	public void setEncounterId(Integer encounterId) {
+		this.encounterId = encounterId;
+	}
+	
+	public Integer getProviderId() {
+		return providerId;
+	}
+	
+	public void setProviderId(Integer providerId) {
+		this.providerId = providerId;
+	}
+	
+	public Integer getEncounterRoleId() {
+		return encounterRoleId;
+	}
+	
+	public void setEncounterRoleId(Integer encounterRoleId) {
+		this.encounterRoleId = encounterRoleId;
+	}
+	
+	public String getUuid() {
+		return uuid;
+	}
+	
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+	
+	public Integer getArchivalEncounterProviderId() {
+		return archivalEncounterProviderId;
+	}
+	
 	@Id
 	@GeneratedValue
 	@Column(name = "archival_encounter_provider_id")
 	private Integer archivalEncounterProviderId;
+	
+	@Basic
+	@Column(name = "encounter_provider_id")
+	private Integer encounterProviderId;
+	
+	@Basic
+	@Column(name = "encounter_id")
+	private Integer encounterId;
+	
+	@Basic
+	@Column(name = "provider_id")
+	private Integer providerId;
+	
+	@Basic
+	@Column(name = "encounter_role_id")
+	private Integer encounterRoleId;
+	
+	@Basic
+	@Column(name = "uuid", length = 38)
+	private String uuid;
 	
 }
