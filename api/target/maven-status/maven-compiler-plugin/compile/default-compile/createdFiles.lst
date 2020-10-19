@@ -1,0 +1,9 @@
+org\openmrs\module\archival\ArchivedObs.class
+org\openmrs\module\archival\ArchivalActivator.class
+org\openmrs\module\archival\ArchivedEncounterProvider.class
+org\openmrs\module\archival\api\impl\ArchivalServiceImpl.class
+org\openmrs\module\archival\api\dao\impl\ArchivalDAOImpl.class
+org\openmrs\module\archival\api\ArchivalService.class
+org\openmrs\module\archival\ArchivalConfig.class
+org\openmrs\module\archival\ArchivedEncounter.class
+org\openmrs\module\archival\api\dao\ArchivalDao.class
