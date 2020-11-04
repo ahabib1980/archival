@@ -20,6 +20,7 @@ import javax.persistence.Table;
 
 import org.openmrs.BaseOpenmrsData;
 import org.openmrs.Obs;
+import org.openmrs.api.context.Context;
 
 /**
  * Please note that a corresponding table schema must be created in liquibase.xml.
@@ -382,6 +383,46 @@ public class ArchivedObs extends BaseOpenmrsData {
 	
 	public void setInterpretation(String interpretation) {
 		this.interpretation = interpretation;
+	}
+	
+	public Obs getObs() {
+		
+		Obs o = new Obs();
+		
+		o.setObsId(this.getId());
+		o.setPerson(Context.getPersonService().getPerson(this.getPersonId()));
+		o.setConcept(Context.getConceptService().getConcept(this.getConceptId()));
+		o.setEncounter(Context.getEncounterService().getEncounter(this.getEncounterId()));
+		o.setOrder(Context.getOrderService().getOrder(this.getOrderId()));
+		o.setObsDatetime(this.getObsDatetime());
+		o.setLocation(Context.getLocationService().getLocation(this.getLocationId()));
+		o.setObsGroup(Context.getObsService().getObs(this.getObsGroupId()));
+		o.setAccessionNumber(this.getAccessionNumber());
+		o.setValueGroupId(this.getValueGroupId());
+		o.setValueCoded(Context.getConceptService().getConcept(this.getValueCoded()));
+		o.setValueCodedName(Context.getConceptService().getConceptName(this.getValueCodedNameId()));
+		o.setValueDrug(Context.getConceptService().getDrug(this.getValueDrug()));
+		o.setValueDatetime(this.getValueDatetime());
+		o.setValueNumeric(this.getValueNumeric());
+		o.setValueModifier(this.getValueModifier());
+		o.setValueText(this.getValueText());
+		o.setValueComplex(this.getValueComplex());
+		o.setComment(this.getComment());
+		o.setUuid(this.getUuid());
+		o.setPreviousVersion(Context.getObsService().getObs(this.getPreviousVersion()));
+		//o.getF
+		/*o.setStatus(this.getStatus());
+		o.setInterpretation(this.getInterpretation());*/
+		o.setChangedBy(this.getChangedBy());
+		o.setCreator(this.getCreator());
+		o.setDateChanged(this.getDateChanged());
+		o.setDateCreated(this.getDateCreated());
+		o.setDateVoided(this.getDateVoided());
+		o.setVoided(this.getVoided());
+		o.setVoidedBy(this.getVoidedBy());
+		o.setVoidReason(this.getVoidReason());
+		
+		return o;
 	}
 	
 }

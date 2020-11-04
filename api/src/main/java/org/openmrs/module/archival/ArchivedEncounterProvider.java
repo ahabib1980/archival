@@ -18,6 +18,7 @@ import javax.persistence.Table;
 
 import org.openmrs.BaseOpenmrsData;
 import org.openmrs.EncounterProvider;
+import org.openmrs.api.context.Context;
 
 /**
  * Please note that a corresponding table schema must be created in liquibase.xml.
@@ -110,6 +111,27 @@ public class ArchivedEncounterProvider extends BaseOpenmrsData {
 	
 	public Integer getArchivalEncounterProviderId() {
 		return archivalEncounterProviderId;
+	}
+	
+	public EncounterProvider getEncounterProvider() {
+		
+		EncounterProvider ep = new EncounterProvider();
+		
+		ep.setEncounter(Context.getEncounterService().getEncounter(this.getEncounterId()));
+		ep.setEncounterProviderId(this.getEncounterProviderId());
+		ep.setEncounterRole(Context.getEncounterService().getEncounterRole(this.getEncounterRoleId()));
+		ep.setProvider(Context.getProviderService().getProvider(this.getEncounterProviderId()));
+		ep.setUuid(this.getUuid());
+		ep.setChangedBy(this.getChangedBy());
+		ep.setCreator(this.getCreator());
+		ep.setDateChanged(this.getDateChanged());
+		ep.setDateCreated(this.getDateCreated());
+		ep.setDateVoided(this.getDateVoided());
+		ep.setVoided(this.getVoided());
+		ep.setVoidedBy(this.getVoidedBy());
+		ep.setVoidReason(this.getVoidReason());
+		
+		return ep;
 	}
 	
 	@Id

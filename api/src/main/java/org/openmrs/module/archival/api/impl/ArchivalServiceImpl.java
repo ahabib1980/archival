@@ -22,6 +22,9 @@ import org.openmrs.api.APIException;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
+import org.openmrs.module.archival.ArchivedEncounter;
+import org.openmrs.module.archival.ArchivedEncounterProvider;
+import org.openmrs.module.archival.ArchivedObs;
 import org.openmrs.module.archival.api.ArchivalService;
 import org.openmrs.module.archival.api.dao.ArchivalDao;
 
@@ -119,8 +122,9 @@ public class ArchivalServiceImpl extends BaseOpenmrsService implements ArchivalS
 	
 	@Override
 	public Boolean retrievePatient(Integer patientId) throws APIException {
-		// TODO Auto-generated method stub
 		// TODO check if patient archived (just in case)
+		
+		dao.retrieveArchivedPatient(patientId);
 		
 		return Boolean.TRUE;
 	}

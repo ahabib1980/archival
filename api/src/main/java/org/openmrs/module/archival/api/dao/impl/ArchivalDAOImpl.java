@@ -7,9 +7,12 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
 import org.openmrs.Encounter;
 import org.openmrs.EncounterProvider;
@@ -113,62 +116,128 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	
 	@Override
 	public void retrieveArchivedPatient(Integer patientId) {
-		// TODO Auto-generated method stub
+		List<ArchivedEncounter> aeList = getArchivedEncountersForPatient(patientId);
+		
+		Session session = sessionFactory.getCurrentSession();
+		Transaction tx = session.beginTransaction();
+		
+		try {
+			
+			for (ArchivedEncounter ae : aeList) {
+				retrieveArchivedEncounter(ae.getEncounterId(), session);
+				
+			}
+			
+			tx.commit();
+		}
+		
+		catch (ConstraintViolationException cve) {
+			cve.printStackTrace();
+			tx.rollback();
+			//TODO Logging and proper handling
+		}
 		
 	}
 	
 	@Override
-	public void retrieveArchivedEncounter(Integer archivedEncounterId) {
-		// TODO Auto-generated method stub
+	public void retrieveArchivedEncounter(Integer encounterId, Session session) {
+		
+		ArchivedEncounter ae = getArchivedEncounter(encounterId);
+		
+		List<ArchivedEncounterProvider> aepList = getArchivedEncounterProvidersForArchivedEncounter(ae.getEncounterId());
+		List<ArchivedObs> aoList = getArchivedObsForArchivedEncounter(ae.getEncounterId());
+		
+		//TODO code to retrieve Encounter
+		Encounter e = ae.getEncounter();
+		
+		session.saveOrUpdate(e);
+		
+		for (ArchivedEncounterProvider aep : aepList) {
+			retrieveArchivedEncounterProvider(aep.getEncounterProviderId(), session);
+		}
+		
+		for (ArchivedObs ao : aoList) {
+			retrieveArchivedObs(ao.getArchivalObsId(), session);
+		}
+		
+		session.delete(ae);
 		
 	}
 	
 	@Override
-	public void retrieveArchivedEncounterProvider(Integer archivedEncounterProviderId, Session session) {
-		// TODO Auto-generated method stub
+	public void retrieveArchivedEncounterProvider(Integer encounterProviderId, Session session) {
+		ArchivedEncounterProvider aep = getArchivedEncounterProvider(encounterProviderId);
+		
+		EncounterProvider ep = aep.getEncounterProvider();
+		
+		session.saveOrUpdate(ep);
+		
+		session.delete(aep);
 		
 	}
 	
 	@Override
-	public void retrieveArchivedObs(Integer archivedObsId, Session session) {
-		// TODO Auto-generated method stub
+	public void retrieveArchivedObs(Integer obsId, Session session) {
+		ArchivedObs ao = getArchivedObs(obsId);
+		
+		Obs o = ao.getObs();
+		
+		session.saveOrUpdate(o);
+		
+		session.delete(ao);
 		
 	}
 	
 	@Override
 	public ArchivedEncounter getArchivedEncounter(Integer encounterId) {
-		// TODO Auto-generated method stub
-		return null;
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ArchivedEncounter.class);
+		criteria.add(Restrictions.eq("encounterId", encounterId));
+		return (ArchivedEncounter) criteria.uniqueResult();
 	}
 	
 	@Override
 	public ArchivedEncounterProvider getArchivedEncounterProvider(Integer encounterProviderId) {
-		// TODO Auto-generated method stub
-		return null;
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ArchivedEncounterProvider.class);
+		criteria.add(Restrictions.eq("archivedEncounterProviderId", encounterProviderId));
+		return (ArchivedEncounterProvider) criteria.uniqueResult();
+		
 	}
 	
 	@Override
 	public ArchivedObs getArchivedObs(Integer archivedObsId) {
-		// TODO Auto-generated method stub
-		return null;
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ArchivedObs.class);
+		criteria.add(Restrictions.eq("archivedObsId", archivedObsId));
+		return (ArchivedObs) criteria.uniqueResult();
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<ArchivedEncounter> getArchivedEncountersForPatient(Integer patientId) {
-		// TODO Auto-generated method stub
-		return null;
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ArchivedEncounter.class);
+		criteria.addOrder(Order.asc("archivedEncounterId"));
+		criteria.add(Restrictions.eq("patientId", patientId));
+		
+		return criteria.list();
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<ArchivedEncounterProvider> getArchivedEncounterProvidersForArchivedEncounter(Integer encounterId) {
-		// TODO Auto-generated method stub
-		return null;
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ArchivedEncounterProvider.class);
+		criteria.addOrder(Order.asc("encounterProviderId"));
+		criteria.add(Restrictions.eq("encounterId", encounterId));
+		
+		return criteria.list();
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public List<ArchivedObs> getArchivedObsForArchivedEncounter(Integer encounterId) {
-		// TODO Auto-generated method stub
-		return null;
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ArchivedEncounterProvider.class);
+		criteria.addOrder(Order.asc("obsId"));
+		criteria.add(Restrictions.eq("encounterId", encounterId));
+		
+		return criteria.list();
 	}
 	
 }
