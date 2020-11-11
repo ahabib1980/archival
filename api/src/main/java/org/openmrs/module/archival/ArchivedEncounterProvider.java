@@ -29,8 +29,8 @@ import org.openmrs.api.context.Context;
  * 
  * @author ali.habib@ihsinformatics.com
  */
-@Entity(name = "archival.ArchivedEncounter")
-@Table(name = "archival_encounter")
+@Entity(name = "archival.ArchivedEncounterProvider")
+@Table(name = "archival_encounter_provider")
 public class ArchivedEncounterProvider extends BaseOpenmrsData {
 	
 	public ArchivedEncounterProvider(EncounterProvider ep) {
