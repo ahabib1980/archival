@@ -200,7 +200,7 @@
 			
 			<column name="value_text" type="char" />
 			
-			<column name="value_complex" type="char(1000)" />
+			<column name="value_complex" type="text" />
 			
 			<column name="comments" type="char(255)" />
 

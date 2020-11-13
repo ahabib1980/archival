@@ -101,13 +101,11 @@ public class ArchivedEncounterProvider extends BaseOpenmrsData {
 		this.encounterRoleId = encounterRoleId;
 	}
 	
-	public String getUuid() {
-		return uuid;
-	}
-	
-	public void setUuid(String uuid) {
-		this.uuid = uuid;
-	}
+	/*
+	 * public String getUuid() { return uuid; }
+	 * 
+	 * public void setUuid(String uuid) { this.uuid = uuid; }
+	 */
 	
 	public Integer getArchivalEncounterProviderId() {
 		return archivalEncounterProviderId;
@@ -155,8 +153,10 @@ public class ArchivedEncounterProvider extends BaseOpenmrsData {
 	@Column(name = "encounter_role_id")
 	private Integer encounterRoleId;
 	
-	@Basic
-	@Column(name = "uuid", length = 38)
-	private String uuid;
+	/*
+	 * @Basic
+	 * 
+	 * @Column(name = "uuid", length = 38) private String uuid;
+	 */
 	
 }

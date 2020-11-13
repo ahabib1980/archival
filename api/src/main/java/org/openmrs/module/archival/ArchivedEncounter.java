@@ -113,13 +113,11 @@ public class ArchivedEncounter extends BaseOpenmrsData {
 		this.encounterDatetime = encounterDatetime;
 	}
 	
-	public String getUuid() {
-		return uuid;
-	}
-	
-	public void setUuid(String uuid) {
-		this.uuid = uuid;
-	}
+	/*
+	 * public String getUuid() { return uuid; }
+	 * 
+	 * public void setUuid(String uuid) { this.uuid = uuid; }
+	 */
 	
 	@Id
 	@GeneratedValue
@@ -150,9 +148,11 @@ public class ArchivedEncounter extends BaseOpenmrsData {
 	@Column(name = "encounter_datetime")
 	private Date encounterDatetime;
 	
-	@Basic
-	@Column(name = "uuid", length = 38)
-	private String uuid;
+	/*
+	 * @Basic
+	 * 
+	 * @Column(name = "uuid", length = 38) private String uuid;
+	 */
 	
 	@Override
 	public Integer getId() {

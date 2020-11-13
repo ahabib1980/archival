@@ -27,14 +27,14 @@
 
     <!-- Wraps ArchivalService methods in DB transactions and OpenMRS interceptors,
     which set audit info like dateCreated, changedBy, etc.-->
-    <bean id="archival.ArchivalService"
+   <!--  <bean id="archival.ArchivalService"
             class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
         <property name="transactionManager">
             <ref bean="transactionManager" />
         </property>
         <property name="target">
             <bean class="org.openmrs.module.archival.api.impl.ArchivalServiceImpl">
-                <property name="dao" ref="archival.ArchivalDao" />
+                <property name="dao" ref="archival.api.dao.ArchivalDao" />
             </bean>
         </property>
         <property name="preInterceptors">
@@ -43,15 +43,44 @@
         <property name="transactionAttributeSource">
             <ref bean="transactionAttributeSource" />
         </property>
-    </bean>
+    </bean> -->
 
     <!-- Adds ArchivalService to OpenMRS context so it can be accessed
     calling Context.getService(ArchivalService.class) -->
-    <bean parent="serviceContext">
+   <!--  <bean parent="serviceContext">
         <property name="moduleService">
             <list>
                 <value>org.openmrs.module.archival.api.ArchivalService</value>
-                <ref bean="archival.ArchivalService" />
+                <ref bean="archival.api.ArchivalService" />
+            </list>
+        </property>
+    </bean> -->
+     <bean parent="serviceContext">
+        <property name="moduleService">
+            <list>
+                <value>org.openmrs.module.commonlabtest.api.CommonLabTestService</value>
+                <bean class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+                    <property name="transactionManager">
+                        <ref bean="transactionManager"/>
+                    </property>
+                    <property name="target">
+                        <bean class="org.openmrs.module.archival.api.impl.ArchivalServiceImpl">
+                        </bean>
+                    </property>
+                    <property name="preInterceptors">
+                        <ref bean="serviceInterceptors"/>
+                    </property>
+                    <property name="transactionAttributeSource">
+                        <bean class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource"/>
+                    </property>
+                </bean>
+                <bean id="transactionInterceptor"
+                      class="org.springframework.transaction.interceptor.TransactionInterceptor">
+                    <property name="transactionManager" ref="transactionManager"/>
+                    <property name="transactionAttributeSource">
+                        <ref bean="transactionAttributeSource"/>
+                    </property>
+                </bean>
             </list>
         </property>
     </bean>

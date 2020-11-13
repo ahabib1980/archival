@@ -80,13 +80,11 @@ public class ArchivedObs extends BaseOpenmrsData {
 		this.archivalObsId = archivalObsId;
 	}
 	
-	public String getUuid() {
-		return uuid;
-	}
-	
-	public void setUuid(String uuid) {
-		this.uuid = uuid;
-	}
+	/*
+	 * public String getUuid() { return uuid; }
+	 * 
+	 * public void setUuid(String uuid) { this.uuid = uuid; }
+	 */
 	
 	@Id
 	@GeneratedValue
@@ -169,9 +167,11 @@ public class ArchivedObs extends BaseOpenmrsData {
 	@Column(name = "comment", length = 255)
 	private String comment;
 	
-	@Basic
-	@Column(name = "uuid", length = 38)
-	private String uuid;
+	/*
+	 * @Basic
+	 * 
+	 * @Column(name = "uuid", length = 38) private String uuid;
+	 */
 	
 	@Basic
 	@Column(name = "previous_version")
