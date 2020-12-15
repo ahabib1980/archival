@@ -9,19 +9,15 @@
  */
 package org.openmrs.module.archival.web.controller;
 
-import java.util.List;
-
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.openmrs.api.context.Context;
 import org.openmrs.module.archival.api.ArchivalService;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -46,5 +42,12 @@ public class ArchivalController {
 		archivalService = Context.getService(ArchivalService.class);
 		
 		return SUCCESS_AND_VIEW;
+	}
+	
+	@RequestMapping(method = RequestMethod.GET, value = "/module/archival/executeQuery.form")
+	public String onRetire(ModelMap model, HttpSession httpSession, HttpServletRequest request,
+	        @RequestParam("query") String query) {
+		
+		return "redirect:archival.form";
 	}
 }

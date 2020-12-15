@@ -17,8 +17,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.User;
 import org.openmrs.api.UserService;
+import org.openmrs.api.context.Context;
+import org.openmrs.module.archival.api.ArchivalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,20 +37,21 @@ public class RetrievalController {
 	/** Logger for this class and subclasses */
 	protected final Log log = LogFactory.getLog(getClass());
 	
+	/** Success form view name */
+	private final String SUCCESS_AND_VIEW = "/module/archival/retrieveResult";
+	
+	private final String VIEW = "/module/${rootArtifactid}/${rootArtifactid}";
+	
+	ArchivalService archivalService;
+	
 	@Autowired
 	UserService userService;
 	
-	/** Success form view name */
-	private final String VIEW = "/module/${rootArtifactid}/${rootArtifactid}";
-	
-	/**
-	 * Initially called after the getUsers method to get the landing form name
-	 * 
-	 * @return String form view name
-	 */
-	@RequestMapping(method = RequestMethod.GET)
-	public String onGet() {
-		return VIEW;
+	@RequestMapping(method = RequestMethod.GET, value = "/module/archival/retrieveResult.form")
+	public String showForm(ModelMap model) {
+		archivalService = Context.getService(ArchivalService.class);
+		
+		return SUCCESS_AND_VIEW;
 	}
 	
 	/**
@@ -66,7 +70,7 @@ public class RetrievalController {
 			// return error view
 		}
 		
-		return VIEW;
+		return SUCCESS_AND_VIEW;
 	}
 	
 	/**
