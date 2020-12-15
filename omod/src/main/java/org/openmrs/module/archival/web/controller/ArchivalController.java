@@ -30,8 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * This class configured as controller using annotation and mapped with the URL of
  * 'module/${rootArtifactid}/${rootArtifactid}Link.form'.
  */
-@Controller("${rootrootArtifactid}.ArchivalController")
-@RequestMapping(value = "module/${rootArtifactid}/${rootArtifactid}.form")
+@Controller
 public class ArchivalController {
 	
 	/** Logger for this class and subclasses */
@@ -42,11 +41,9 @@ public class ArchivalController {
 	
 	ArchivalService archivalService;
 	
-	
 	@RequestMapping(method = RequestMethod.GET, value = "/module/archival/archival.form")
 	public String showForm(ModelMap model) {
 		archivalService = Context.getService(ArchivalService.class);
-		
 		
 		return SUCCESS_AND_VIEW;
 	}
