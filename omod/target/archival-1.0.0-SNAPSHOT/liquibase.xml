@@ -241,11 +241,14 @@
 			
 			<column name="name" value="Archived" />
 			<column name="description" value="Added by Archival Module to indicate whether or not a patient has been archived" />
+			<column name="format" value="java.lang.String" />
 			<column name="creator">1</column>
 			<column name="retired">0</column>
 			<column name="date_created" valueDate="${now}" />
-			<column name="uuid" value="${uuid}" />
+			<column name="uuid" value="c58215b1-2572-11eb-b44d-00ff41827b16" />
 		</insert>
 	</changeSet>
+	
+
  
 </databaseChangeLog>

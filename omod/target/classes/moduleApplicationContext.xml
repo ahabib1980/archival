@@ -58,7 +58,7 @@
      <bean parent="serviceContext">
         <property name="moduleService">
             <list>
-                <value>org.openmrs.module.commonlabtest.api.CommonLabTestService</value>
+                <value>org.openmrs.module.archival.api.ArchivalService</value>
                 <bean class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
                     <property name="transactionManager">
                         <ref bean="transactionManager"/>
