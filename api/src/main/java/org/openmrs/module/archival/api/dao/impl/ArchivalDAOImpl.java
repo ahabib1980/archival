@@ -26,7 +26,9 @@ import org.openmrs.module.archival.ArchivedEncounterProvider;
 import org.openmrs.module.archival.ArchivedObs;
 import org.openmrs.module.archival.api.dao.ArchivalDao;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ArchivalDAOImpl implements ArchivalDao {
 	
 	protected final Log log = LogFactory.getLog(this.getClass());
