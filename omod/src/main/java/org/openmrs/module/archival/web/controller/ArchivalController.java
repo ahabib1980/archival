@@ -9,11 +9,15 @@
  */
 package org.openmrs.module.archival.web.controller;
 
+import java.util.List;
+import java.util.*;
+import java.util.logging.Logger;
+
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.archival.api.ArchivalService;
 import org.springframework.stereotype.Controller;
@@ -21,6 +25,10 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * This class configured as controller using annotation and mapped with the URL of
@@ -45,9 +53,25 @@ public class ArchivalController {
 	}
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/module/archival/executeQuery.form")
-	public String onRetire(ModelMap model, HttpSession httpSession, HttpServletRequest request,
-	        @RequestParam("query") String query) {
+	@ResponseBody
+	public String executeQuery(HttpServletRequest request, @RequestParam(value = "query", required = false) String query) {
 		
-		return "redirect:archival.form";
+		Logger.getAnonymousLogger().info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Query: " + query);
+		//		query = " Select * from patient p inner join person_name pn on p.patient_id = pn.person_id where pn.given_name like '%John%';";
+		archivalService = Context.getService(ArchivalService.class);
+		
+		JsonObject responseObj = new JsonObject();
+		JsonArray patientArray = new JsonArray();
+		List<Patient> patients = archivalService.getPatientListForArchival(query);
+		Logger.getAnonymousLogger().info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Searched patient size is: " + patients.size());
+		
+		for (Patient p : patients) {
+			JsonObject obj = new JsonObject();
+			obj.addProperty("patientId", p.getPatientId().toString());
+			patientArray.add(obj);
+		}
+		
+		responseObj.add("patientList", patientArray);
+		return responseObj.toString();
 	}
 }

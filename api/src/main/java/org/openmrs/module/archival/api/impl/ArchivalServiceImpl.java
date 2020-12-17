@@ -27,6 +27,8 @@ import org.openmrs.module.archival.ArchivedEncounterProvider;
 import org.openmrs.module.archival.ArchivedObs;
 import org.openmrs.module.archival.api.ArchivalService;
 import org.openmrs.module.archival.api.dao.ArchivalDao;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Implementation of the main service of this module, which is exposed for other modules. See
@@ -35,8 +37,10 @@ import org.openmrs.module.archival.api.dao.ArchivalDao;
  * @author ali.habib@ihsinformatics.com
  */
 
+@Service
 public class ArchivalServiceImpl extends BaseOpenmrsService implements ArchivalService {
 	
+	@Autowired
 	ArchivalDao dao;
 	
 	UserService userService;

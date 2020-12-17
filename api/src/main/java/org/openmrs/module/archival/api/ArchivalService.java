@@ -17,6 +17,7 @@ import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.APIException;
 import org.openmrs.api.OpenmrsService;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * The main service of this module, which is exposed for other modules. See
@@ -24,6 +25,7 @@ import org.openmrs.api.OpenmrsService;
  * 
  * @author ali.habib@ihsinformatics.com
  */
+@Transactional
 public interface ArchivalService extends OpenmrsService {
 	
 	/**
