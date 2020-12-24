@@ -9,8 +9,12 @@
  */
 package org.openmrs.module.archival.web.controller;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.*;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +24,12 @@ import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.archival.api.ArchivalService;
+import org.openmrs.module.archival.web.dto.PatientDto;
+import org.openmrs.module.archival.web.util.PdfReport;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -56,22 +67,73 @@ public class ArchivalController {
 	@ResponseBody
 	public String executeQuery(HttpServletRequest request, @RequestParam(value = "query", required = false) String query) {
 		
-		Logger.getAnonymousLogger().info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Query: " + query);
-		//		query = " Select * from patient p inner join person_name pn on p.patient_id = pn.person_id where pn.given_name like '%John%';";
 		archivalService = Context.getService(ArchivalService.class);
 		
 		JsonObject responseObj = new JsonObject();
 		JsonArray patientArray = new JsonArray();
 		List<Patient> patients = archivalService.getPatientListForArchival(query);
-		Logger.getAnonymousLogger().info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Searched patient size is: " + patients.size());
+		List<PatientDto> patientDtoList = new ArrayList<PatientDto>();
+		Logger.getAnonymousLogger().info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Count of searched patients is: " + patients.size());
 		
-		for (Patient p : patients) {
+		for (Patient patient : patients) {
 			JsonObject obj = new JsonObject();
-			obj.addProperty("patientId", p.getPatientId().toString());
+			PatientDto patientDto = new PatientDto(patient);
+			obj.addProperty("patientId", patient.getPatientId().toString());
+			patientDtoList.add(patientDto);
 			patientArray.add(obj);
 		}
 		
-		responseObj.add("patientList", patientArray);
+		Gson gson = new Gson();
+		String json = gson.toJson(patientDtoList);
+		return json;
+	}
+	
+	@RequestMapping(method = RequestMethod.POST, value = "/module/archival/archivePatients.form")
+	@ResponseBody
+	public String archivePatients(HttpServletRequest request,
+	        @RequestParam(value = "patients", required = false) String patientIdArray) {
+		
+		JsonObject responseObj = new JsonObject();
+		responseObj.addProperty("success", true);
+		Logger.getAnonymousLogger().info(
+		    ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Patient array string: " + patientIdArray);
+		String[] patientIds = patientIdArray.split(",");
+		List<Patient> patients = new ArrayList<Patient>();
+		for (String id : patientIds) {
+			Patient pat = Context.getPatientService().getPatient(Integer.parseInt(id));
+			patients.add(pat);
+		}
+		
+		// TODO: complete this method by sending a valid response accordingly
+		archivalService.archivePatients(patients);
+		responseObj.addProperty("patientIds", patientIdArray);
+		
 		return responseObj.toString();
+	}
+	
+	@RequestMapping(method = RequestMethod.GET, value = "/module/archival/downloadReport.form" /*, produces = "application/pdf" */)
+	public ResponseEntity<byte[]> downloadReport(@RequestParam(value = "patientList", required = false) String patientIdArray)
+	        throws IOException {
+		
+		String[] patientIds = patientIdArray.split(",");
+		List<PatientDto> patientDtos = new ArrayList<PatientDto>();
+		for (String id : patientIds) {
+			Patient pat = Context.getPatientService().getPatient(Integer.parseInt(id));
+			patientDtos.add(new PatientDto(pat));
+		}
+		
+		InputStream inputStream = PdfReport.generateReport(patientDtos, Context.getAuthenticatedUser());
+		ByteArrayInputStream bis = PdfReport.generateReport(patientDtos, Context.getAuthenticatedUser());
+		byte[] bytes = org.apache.commons.io.IOUtils.toByteArray(inputStream);
+		
+		String filename = "archive_report_" + new Timestamp(System.currentTimeMillis()) + ".pdf";
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType("application/pdf"));
+		headers.setContentDispositionFormData(filename, filename);
+		headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+		
+		ResponseEntity<byte[]> response = new ResponseEntity<byte[]>(bytes, headers, HttpStatus.OK);
+		return response;
 	}
 }
