@@ -73,7 +73,8 @@ public class ArchivalController {
 		JsonArray patientArray = new JsonArray();
 		List<Patient> patients = archivalService.getPatientListForArchival(query);
 		List<PatientDto> patientDtoList = new ArrayList<PatientDto>();
-		Logger.getAnonymousLogger().info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Count of searched patients is: " + patients.size());
+		Logger.getAnonymousLogger().info(
+		    ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Count of searched patients is: " + patients.size());
 		
 		for (Patient patient : patients) {
 			JsonObject obj = new JsonObject();

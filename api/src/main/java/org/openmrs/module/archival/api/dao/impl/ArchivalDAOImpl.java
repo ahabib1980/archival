@@ -21,6 +21,9 @@ import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.context.Context;
+import org.openmrs.api.db.hibernate.DbSession;
+import org.openmrs.api.db.hibernate.DbSessionFactory;
+import org.openmrs.api.db.hibernate.HibernateUtil;
 import org.openmrs.module.archival.ArchivedEncounter;
 import org.openmrs.module.archival.ArchivedEncounterProvider;
 import org.openmrs.module.archival.ArchivedObs;
@@ -34,13 +37,29 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	protected final Log log = LogFactory.getLog(this.getClass());
 	
 	@Autowired
-	private SessionFactory sessionFactory;
+	private DbSessionFactory sessionFactory;
+	
+	/* Original code. Commented due to Hibernate version conflicts. OpenMRS dependencies that came with SDK include Hibernate 3.x. SessionFactory requires  4.x
+	 * 
+	 * private Session sessionFactory;  
 	
 	public SessionFactory getSessionFactory() {
 		return sessionFactory;
 	}
 	
 	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
+	
+	public SessionFactory getSessionFactory() {
+		return sessionFactory;
+	}*/
+	
+	public DbSessionFactory getSessionFactory() {
+		return sessionFactory;
+	}
+	
+	public void setSessionFactory(DbSessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
 	
@@ -67,35 +86,77 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Override
 	public void archiveEncounter(Encounter e, Set<EncounterProvider> epSet, Set<Obs> obsSet) {
 		
-		Session session = sessionFactory.getCurrentSession();
-		Transaction tx = session.beginTransaction();
+		//Session session = sessionFactory.getCurrentSession();
+		//Transaction tx = null;
+		
+		DbSession session = sessionFactory.getCurrentSession();
+		//
 		
 		try {
 			
+			/* ORIGINAL code. Commented due to hibernate conflicts
+			 * tx = session.beginTransaction();
+			 */
+			
+			session.getTransaction().begin();
+			
 			for (EncounterProvider ep : epSet) {
-				archiveEncounterProvider(ep, session);
+				//archiveEncounterProvider(ep, session);
+				session.saveOrUpdate(new ArchivedEncounterProvider(ep));
+				e.getEncounterProviders().remove(ep);
+				session.delete(ep);
 			}
 			
 			for (Obs o : obsSet) {
-				archiveObs(o, session);
+				//archiveObs(o, session);
+				session.saveOrUpdate(new ArchivedObs(o));
+				e.getObs().remove(o);
+				session.delete(o);
 			}
 			
 			session.saveOrUpdate(new ArchivedEncounter(e));
 			session.delete(e);
 			
-			tx.commit();
+			/* ORIGINAL code. Commented due to hibernate conflicts
+			 * tx.commit(); 
+			 * */
+			
+			session.getTransaction().commit();
 			
 		}
 		
 		catch (ConstraintViolationException cve) {
+			System.out.print("CVE: ");
 			cve.printStackTrace();
-			tx.rollback();
+			
+			/* ORIGINAL CODE: Commented due to Hibernate version conflicts
+			 * tx.rollback(); 
+			 * */
+			
+			session.getTransaction().rollback();
+			
+			log.error(cve.getStackTrace().toString());
 			//TODO Logging and proper handling
 		}
+		
+		catch (Exception ex) {
+			System.out.print("ERROR: ");
+			ex.printStackTrace();
+			
+			/* ORIGINAL CODE: Commented due to Hibernate version conflicts
+			 * tx.rollback(); 
+			 * */
+			
+			session.getTransaction().rollback();
+			
+			log.error(ex.getStackTrace().toString());
+			//TODO Logging and proper handling
+		}
+		
 	}
 	
 	@Override
-	public void archiveEncounterProvider(EncounterProvider ep, Session session) throws ConstraintViolationException {
+	public void archiveEncounterProvider(EncounterProvider ep, DbSession session) throws ConstraintViolationException {
 		
 		session.saveOrUpdate(new ArchivedEncounterProvider(ep));
 		session.delete(ep);
@@ -103,7 +164,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	}
 	
 	@Override
-	public void archiveObs(Obs o, Session session) throws ConstraintViolationException {
+	public void archiveObs(Obs o, DbSession session) throws ConstraintViolationException {
 		
 		session.saveOrUpdate(new ArchivedObs(o));
 		session.delete(o);
@@ -120,7 +181,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	public void retrieveArchivedPatient(Integer patientId) {
 		List<ArchivedEncounter> aeList = getArchivedEncountersForPatient(patientId);
 		
-		Session session = sessionFactory.getCurrentSession();
+		DbSession session = sessionFactory.getCurrentSession();
 		Transaction tx = session.beginTransaction();
 		
 		try {
@@ -139,10 +200,14 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			//TODO Logging and proper handling
 		}
 		
+		finally {
+			session.close();
+		}
+		
 	}
 	
 	@Override
-	public void retrieveArchivedEncounter(Integer encounterId, Session session) {
+	public void retrieveArchivedEncounter(Integer encounterId, DbSession session) {
 		
 		ArchivedEncounter ae = getArchivedEncounter(encounterId);
 		
@@ -167,7 +232,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	}
 	
 	@Override
-	public void retrieveArchivedEncounterProvider(Integer encounterProviderId, Session session) {
+	public void retrieveArchivedEncounterProvider(Integer encounterProviderId, DbSession session) {
 		ArchivedEncounterProvider aep = getArchivedEncounterProvider(encounterProviderId);
 		
 		EncounterProvider ep = aep.getEncounterProvider();
@@ -179,7 +244,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	}
 	
 	@Override
-	public void retrieveArchivedObs(Integer obsId, Session session) {
+	public void retrieveArchivedObs(Integer obsId, DbSession session) {
 		ArchivedObs ao = getArchivedObs(obsId);
 		
 		Obs o = ao.getObs();
