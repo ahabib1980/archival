@@ -18,6 +18,10 @@ import org.openmrs.Encounter;
 import org.openmrs.EncounterProvider;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
+import org.openmrs.PatientIdentifierType;
+import org.openmrs.Person;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
 import org.openmrs.User;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.context.Context;
@@ -171,10 +175,85 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	}
 	
 	@Override
-	public List<Patient> getArchivedPatients(String identifier, String name, String gender, Date fromDate, Date toDate,
-	        User archivedBy) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Patient> getArchivedPatients(String identifier, String name, String gender) {
+		
+		PatientIdentifierType pit = Context.getPatientService().getPatientIdentifierTypeByName("Patient ID");
+		
+		if (pit == null) {
+			return null;
+		}
+		
+		ArrayList<PatientIdentifierType> pits = new ArrayList<PatientIdentifierType>();
+		pits.add(pit);
+		
+		Integer pitId = pit.getId();
+		
+		PersonAttributeType pat = Context.getPersonService().getPersonAttributeTypeByName("Archived");
+		
+		if (pat == null) {
+			return null;
+		}
+		
+		Integer patId = pat.getId();
+		
+		List<Patient> patList = null;
+		ArrayList<Patient> midList = new ArrayList<Patient>();
+		ArrayList<Patient> finalList = new ArrayList<Patient>();
+		
+		/*
+		 * String query = null;
+		 * 
+		 * query =
+		 * "select * from person as p JOIN patient_identifier as pi ON p.person_id = pi.patient_id where "
+		 * ;
+		 * 
+		 * if(identifier!=null) { query += "pi.identifier_type = " + pitId +
+		 * " AND pi.identifier = '" + identifier + "'"; }
+		 * 
+		 * if(name != null) {
+		 * 
+		 * }
+		 */
+		
+		patList = Context.getPatientService().getPatients(name, identifier, pits, true);
+		
+		if (patList != null && patList.size() != 0) {
+			if (gender != null) {
+				for (Patient p : patList) {
+					if (p.getGender().equalsIgnoreCase(gender.substring(0, 1))) {
+						midList.add(p);
+					}
+				}
+			}
+			
+			else {
+				for (Patient p : patList) {
+					midList.add(p);
+				}
+			}
+			
+			if (midList.size() != 0) {
+				//check for Archived Identifier and add to final List
+				for (Patient p : midList) {
+					Person person = Context.getPersonService().getPerson(p.getId());
+					
+					PersonAttribute pa = person.getAttribute(patId);
+					
+					if (pa != null && pa.getValue().equalsIgnoreCase("yes")) {
+						finalList.add(p);
+					}
+				}
+			}
+			
+		}
+		
+		if (finalList.size() != 0) {
+			for (Patient patient : finalList) {
+				System.out.println(patient.getId());
+			}
+		}
+		
+		return finalList;
 	}
 	
 	@Override

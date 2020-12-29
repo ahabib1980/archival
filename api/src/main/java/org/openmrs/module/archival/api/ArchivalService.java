@@ -86,8 +86,7 @@ public interface ArchivalService extends OpenmrsService {
 	 * @throws APIException on Exception
 	 */
 	
-	List<Patient> getArchivedPatients(String identifier, String name, String gender, Date fromDate, Date toDate,
-	        User archivedBy) throws APIException;
+	List<Patient> getArchivedPatients(String identifier, String name, String gender) throws APIException;
 	
 	/**
 	 * Retrieves a patient from the archive

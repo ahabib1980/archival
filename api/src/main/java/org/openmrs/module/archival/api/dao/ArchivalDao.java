@@ -57,8 +57,7 @@ public interface ArchivalDao {
 	 * @throws APIException on Exception
 	 */
 	
-	List<Patient> getArchivedPatients(String identifier, String name, String gender, Date fromDate, Date toDate,
-	        User archivedBy);
+	List<Patient> getArchivedPatients(String identifier, String name, String gender);
 	
 	void retrieveArchivedPatient(Integer patientId);
 	

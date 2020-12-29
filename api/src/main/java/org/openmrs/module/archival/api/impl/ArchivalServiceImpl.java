@@ -117,10 +117,9 @@ public class ArchivalServiceImpl extends BaseOpenmrsService implements ArchivalS
 	}
 	
 	@Override
-	public List<Patient> getArchivedPatients(String identifier, String name, String gender, Date fromDate, Date toDate,
-	        User archivedBy) {
+	public List<Patient> getArchivedPatients(String identifier, String name, String gender) {
 		
-		return dao.getArchivedPatients(identifier, name, gender, fromDate, toDate, archivedBy);
+		return dao.getArchivedPatients(identifier, name, gender);
 		
 	}
 	
