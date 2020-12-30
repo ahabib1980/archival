@@ -101,21 +101,29 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			/* ORIGINAL code. Commented due to hibernate conflicts
 			 * tx = session.beginTransaction();
 			 */
-			
-			session.getTransaction().begin();
-			
-			for (EncounterProvider ep : epSet) {
-				//archiveEncounterProvider(ep, session);
-				session.saveOrUpdate(new ArchivedEncounterProvider(ep));
-				e.getEncounterProviders().remove(ep);
-				session.delete(ep);
+			if (!session.getTransaction().isActive())
+				session.getTransaction().begin();
+			else {
+				session.getTransaction().commit();
+				session.getTransaction().begin();
 			}
 			
-			for (Obs o : obsSet) {
-				//archiveObs(o, session);
-				session.saveOrUpdate(new ArchivedObs(o));
-				e.getObs().remove(o);
-				session.delete(o);
+			if (epSet != null) {
+				for (EncounterProvider ep : epSet) {
+					//archiveEncounterProvider(ep, session);
+					session.saveOrUpdate(new ArchivedEncounterProvider(ep));
+					e.getEncounterProviders().remove(ep);
+					session.delete(ep);
+				}
+			}
+			
+			if (obsSet != null) {
+				for (Obs o : obsSet) {
+					//archiveObs(o, session);
+					session.saveOrUpdate(new ArchivedObs(o));
+					e.getObs().remove(o);
+					session.delete(o);
+				}
 			}
 			
 			session.saveOrUpdate(new ArchivedEncounter(e));
@@ -136,8 +144,10 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			/* ORIGINAL CODE: Commented due to Hibernate version conflicts
 			 * tx.rollback(); 
 			 * */
-			
-			session.getTransaction().rollback();
+			if (session.getTransaction().isActive()) {
+				log.info("ARCHIVAL - rolling back");
+				session.getTransaction().rollback();
+			}
 			
 			log.error(cve.getStackTrace().toString());
 			//TODO Logging and proper handling
@@ -151,7 +161,10 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			 * tx.rollback(); 
 			 * */
 			
-			session.getTransaction().rollback();
+			if (session.getTransaction().isActive()) {
+				log.info("ARCHIVAL - rolling back");
+				session.getTransaction().rollback();
+			}
 			
 			log.error(ex.getStackTrace().toString());
 			//TODO Logging and proper handling

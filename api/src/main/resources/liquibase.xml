@@ -198,7 +198,7 @@
 			
 			<column name="value_numeric" type="double" />
 			
-			<column name="value_text" type="char" />
+			<column name="value_text" type="text" />
 			
 			<column name="value_complex" type="text" />
 			
@@ -221,7 +221,8 @@
 			<column name="form_namespace_and_path" type="char(255)" />
 			<column name="status" type="char(16)" />
 			<column name="interpretation" type="char(32)" />
-			
+			<column name="order_id" type="int(11)" />
+			<column name="value_modifier" type="varchar(2)" />
 		</createTable>
 		<addForeignKeyConstraint constraintName="archival_obs_creator_fk"
 			baseTableName="archival_obs" baseColumnNames="creator" referencedTableName="users" referencedColumnNames="user_id" />

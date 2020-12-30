@@ -41,21 +41,47 @@ public class ArchivedObs extends BaseOpenmrsData {
 		this.setPersonId(o.getPersonId());
 		this.setConceptId(o.getConcept().getConceptId());
 		this.setEncounterId(o.getEncounter().getEncounterId());
-		this.setOrderId(o.getOrder().getOrderId());
+		
+		if (o.getOrder() != null)
+			this.setOrderId(o.getOrder().getOrderId());
+		else
+			this.setOrderId(null);
+		
 		this.setObsDatetime(o.getObsDatetime());
-		this.setLocationId(o.getLocation().getLocationId());
-		this.setObsGroupId(o.getObsGroup().getId());
+		
+		if (o.getLocation() != null)
+			this.setLocationId(o.getLocation().getLocationId());
+		else
+			this.setLocationId(null);
+		
+		if (o.getObsGroup() != null)
+			this.setObsGroupId(o.getObsGroup().getId());
+		else
+			this.setObsGroupId(null);
+		
 		this.setAccessionNumber(o.getAccessionNumber());
 		this.setValueGroupId(o.getValueGroupId());
-		this.setValueCoded(o.getValueCoded().getConceptId());
-		this.setValueCodedNameId(o.getValueCodedName().getConceptNameId());
-		this.setValueDrug(o.getValueDrug().getDrugId());
+		if (o.getValueCoded() != null)
+			this.setValueCoded(o.getValueCoded().getConceptId());
+		else
+			this.setValueCoded(null);
+		
+		if (o.getValueCodedName() != null)
+			this.setValueCodedNameId(o.getValueCodedName().getConceptNameId());
+		else
+			this.setValueCodedNameId(null);
+		
+		if (this.getValueDrug() != null)
+			this.setValueDrug(o.getValueDrug().getDrugId());
+		else
+			this.setValueDrug(null);
+		
 		this.setValueDatetime(o.getValueDatetime());
 		this.setValueNumeric(o.getValueNumeric());
 		this.setValueModifier(o.getValueModifier());
 		this.setValueText(o.getValueText());
 		this.setValueComplex(o.getValueComplex());
-		this.setComment(o.getComment());
+		this.setComments(o.getComment());
 		this.setUuid(this.getUuid());
 		this.setPreviousVersion(this.getPreviousVersion());
 		this.setFormNamespaceAndPath(this.getFormNamespaceAndPath());
@@ -164,8 +190,8 @@ public class ArchivedObs extends BaseOpenmrsData {
 	private String valueComplex;
 	
 	@Basic
-	@Column(name = "comment", length = 255)
-	private String comment;
+	@Column(name = "comments", length = 255)
+	private String comments;
 	
 	/*
 	 * @Basic
@@ -345,12 +371,12 @@ public class ArchivedObs extends BaseOpenmrsData {
 		this.valueComplex = valueComplex;
 	}
 	
-	public String getComment() {
-		return comment;
+	public String getComments() {
+		return comments;
 	}
 	
-	public void setComment(String comment) {
-		this.comment = comment;
+	public void setComments(String comments) {
+		this.comments = comments;
 	}
 	
 	public Integer getPreviousVersion() {
@@ -393,23 +419,40 @@ public class ArchivedObs extends BaseOpenmrsData {
 		o.setPerson(Context.getPersonService().getPerson(this.getPersonId()));
 		o.setConcept(Context.getConceptService().getConcept(this.getConceptId()));
 		o.setEncounter(Context.getEncounterService().getEncounter(this.getEncounterId()));
-		o.setOrder(Context.getOrderService().getOrder(this.getOrderId()));
+		
+		if (this.getOrderId() != null)
+			o.setOrder(Context.getOrderService().getOrder(this.getOrderId()));
+		
 		o.setObsDatetime(this.getObsDatetime());
-		o.setLocation(Context.getLocationService().getLocation(this.getLocationId()));
-		o.setObsGroup(Context.getObsService().getObs(this.getObsGroupId()));
+		
+		if (this.getLocationId() != null)
+			o.setLocation(Context.getLocationService().getLocation(this.getLocationId()));
+		
+		if (this.getObsGroupId() != null)
+			o.setObsGroup(Context.getObsService().getObs(this.getObsGroupId()));
+		
 		o.setAccessionNumber(this.getAccessionNumber());
 		o.setValueGroupId(this.getValueGroupId());
-		o.setValueCoded(Context.getConceptService().getConcept(this.getValueCoded()));
-		o.setValueCodedName(Context.getConceptService().getConceptName(this.getValueCodedNameId()));
-		o.setValueDrug(Context.getConceptService().getDrug(this.getValueDrug()));
+		
+		if (this.getValueCoded() != null)
+			o.setValueCoded(Context.getConceptService().getConcept(this.getValueCoded()));
+		
+		if (this.getValueCodedNameId() != null)
+			o.setValueCodedName(Context.getConceptService().getConceptName(this.getValueCodedNameId()));
+		
+		if (this.getValueDrug() != null)
+			o.setValueDrug(Context.getConceptService().getDrug(this.getValueDrug()));
+		
 		o.setValueDatetime(this.getValueDatetime());
 		o.setValueNumeric(this.getValueNumeric());
 		o.setValueModifier(this.getValueModifier());
 		o.setValueText(this.getValueText());
 		o.setValueComplex(this.getValueComplex());
-		o.setComment(this.getComment());
+		o.setComment(this.getComments());
 		o.setUuid(this.getUuid());
-		o.setPreviousVersion(Context.getObsService().getObs(this.getPreviousVersion()));
+		
+		if (this.previousVersion != null)
+			o.setPreviousVersion(Context.getObsService().getObs(this.getPreviousVersion()));
 		//o.getF
 		/*o.setStatus(this.getStatus());
 		o.setInterpretation(this.getInterpretation());*/
