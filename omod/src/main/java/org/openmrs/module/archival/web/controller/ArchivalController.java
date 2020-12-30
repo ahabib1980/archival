@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Patient;
+import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.archival.api.ArchivalService;
 import org.openmrs.module.archival.web.dto.PatientDto;
@@ -67,25 +68,39 @@ public class ArchivalController {
 	@ResponseBody
 	public String executeQuery(HttpServletRequest request, @RequestParam(value = "query", required = false) String query) {
 		
-		archivalService = Context.getService(ArchivalService.class);
-		
+		String json = "";
+		JsonObject jsonObj = new JsonObject();
 		JsonObject responseObj = new JsonObject();
 		JsonArray patientArray = new JsonArray();
-		List<Patient> patients = archivalService.getPatientListForArchival(query);
-		List<PatientDto> patientDtoList = new ArrayList<PatientDto>();
-		Logger.getAnonymousLogger().info(
-		    ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Count of searched patients is: " + patients.size());
+		archivalService = Context.getService(ArchivalService.class);
 		
-		for (Patient patient : patients) {
-			JsonObject obj = new JsonObject();
-			PatientDto patientDto = new PatientDto(patient);
-			obj.addProperty("patientId", patient.getPatientId().toString());
-			patientDtoList.add(patientDto);
-			patientArray.add(obj);
+		try {
+			List<Patient> patients = archivalService.getPatientListForArchival(query);
+			List<PatientDto> patientDtoList = new ArrayList<PatientDto>();
+			Logger.getAnonymousLogger().info(
+			    ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Count of searched patients is: " + patients.size());
+			
+			if (patients.size() > 0) {
+				for (Patient patient : patients) {
+					JsonObject obj = new JsonObject();
+					PatientDto patientDto = new PatientDto(patient);
+					obj.addProperty("patientId", patient.getPatientId().toString());
+					patientDtoList.add(patientDto);
+					patientArray.add(obj);
+				}
+				Gson gson = new Gson();
+				json = gson.toJson(patientDtoList);
+			} else {
+				jsonObj.addProperty("status", "empty");
+				return jsonObj.toString();
+			}
+		}
+		catch (APIException e) {
+			e.printStackTrace();
+			jsonObj.addProperty("status", "fail");
+			return jsonObj.toString();
 		}
 		
-		Gson gson = new Gson();
-		String json = gson.toJson(patientDtoList);
 		return json;
 	}
 	
@@ -95,20 +110,27 @@ public class ArchivalController {
 	        @RequestParam(value = "patients", required = false) String patientIdArray) {
 		
 		JsonObject responseObj = new JsonObject();
-		responseObj.addProperty("success", true);
 		Logger.getAnonymousLogger().info(
 		    ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Patient array string: " + patientIdArray);
 		String[] patientIds = patientIdArray.split(",");
 		List<Patient> patients = new ArrayList<Patient>();
-		for (String id : patientIds) {
-			Patient pat = Context.getPatientService().getPatient(Integer.parseInt(id));
-			patients.add(pat);
+		
+		try {
+			for (String id : patientIds) {
+				Patient pat = Context.getPatientService().getPatient(Integer.parseInt(id));
+				patients.add(pat);
+			}
+			
+			archivalService.archivePatients(patients);
+			responseObj.addProperty("patientIds", patientIdArray);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			responseObj.addProperty("status", "fail");
+			return responseObj.toString();
 		}
 		
-		// TODO: complete this method by sending a valid response accordingly
-		archivalService.archivePatients(patients);
-		responseObj.addProperty("patientIds", patientIdArray);
-		
+		responseObj.addProperty("status", "success");
 		return responseObj.toString();
 	}
 	

@@ -4,11 +4,12 @@ body {
 	font-family: Verdana, 'Lucida Grande', 'Trebuchet MS', Arial, Sans-Serif !important;
 	font-size: 0.75em !important;
 }
+
 * {
 	font-family: 'Arial' !important;
 }
 
-#queryDiv {
+#queryDiv, #searchDiv {
 	
 	margin: 1em;
 }
@@ -18,14 +19,17 @@ body {
 	text-align: left;
 }
 
-#analyze, #archive {
+#analyze, #archive, #search, #retrieve {
 	background-color: #1aac9b;
 	color: white;
 	padding: 8px 22px;
 	border: none;
 	border-radius: 2px;
 	cursor: pointer;
-	
+}
+
+#search {
+	margin-top: 0.5em !important;
 }
 
 #archive {
@@ -82,3 +86,25 @@ span.error {
 span.success {
 	padding: 1px 6px 1px 60px !important;	
 }
+
+.jconfirm.jconfirm-material .jconfirm-box .jconfirm-buttons button {
+    background-color: #1aac9b !important;
+}
+
+#searchedPatientList td, .table th {
+    padding: .25rem;
+}
+
+#gender {
+	height: 50% !important;
+}
+
+#patientIdentifier, #patientName {
+	border: 1px solid #ced4da;
+    border-radius: .25rem;
+}
+
+#searchButtonDiv {
+	margin-top: 1em !important;
+}
+
