@@ -16,6 +16,7 @@ import java.util.Set;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.APIException;
+import org.openmrs.api.db.hibernate.DbSession;
 import org.openmrs.module.archival.ArchivedEncounter;
 import org.openmrs.module.archival.ArchivedEncounterProvider;
 import org.openmrs.module.archival.ArchivedObs;
@@ -42,9 +43,9 @@ public interface ArchivalDao {
 	
 	void archiveEncounter(Encounter e, Set<EncounterProvider> epSet, Set<Obs> obsSet);
 	
-	void archiveEncounterProvider(EncounterProvider ep, Session session);
+	void archiveEncounterProvider(EncounterProvider ep, DbSession session);
 	
-	void archiveObs(Obs o, Session session);
+	void archiveObs(Obs o, DbSession session);
 	
 	//for retrieval
 	
@@ -56,16 +57,15 @@ public interface ArchivalDao {
 	 * @throws APIException on Exception
 	 */
 	
-	List<Patient> getArchivedPatients(String identifier, String name, String gender, Date fromDate, Date toDate,
-	        User archivedBy);
+	List<Patient> getArchivedPatients(String identifier, String name, String gender);
 	
 	void retrieveArchivedPatient(Integer patientId);
 	
-	void retrieveArchivedEncounter(Integer archivedEncounterId, Session session);
+	void retrieveArchivedEncounter(Integer archivedEncounterId, DbSession session);
 	
-	void retrieveArchivedEncounterProvider(Integer archivedEncounterProviderId, Session session);
+	void retrieveArchivedEncounterProvider(Integer archivedEncounterProviderId, DbSession session);
 	
-	void retrieveArchivedObs(Integer archivedObsId, Session session);
+	void retrieveArchivedObs(Integer archivedObsId, DbSession session);
 	
 	ArchivedEncounter getArchivedEncounter(Integer encounterId);
 	

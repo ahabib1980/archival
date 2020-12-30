@@ -27,7 +27,7 @@
 
     <!-- Wraps ArchivalService methods in DB transactions and OpenMRS interceptors,
     which set audit info like dateCreated, changedBy, etc.-->
-   <!--  <bean id="archival.ArchivalService"
+  <!--  <bean id="archival.api.ArchivalService"
             class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
         <property name="transactionManager">
             <ref bean="transactionManager" />
@@ -43,8 +43,8 @@
         <property name="transactionAttributeSource">
             <ref bean="transactionAttributeSource" />
         </property>
-    </bean> -->
-
+    </bean>
+ -->
     <!-- Adds ArchivalService to OpenMRS context so it can be accessed
     calling Context.getService(ArchivalService.class) -->
    <!--  <bean parent="serviceContext">

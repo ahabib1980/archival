@@ -249,6 +249,27 @@
 		</insert>
 	</changeSet>
 	
+	<changeSet id="archival-2020-12-30_1" author="ali.habib">
+		<preConditions onFail="MARK_RAN">
+			<sqlCheck expectedResult="0">select count(*) from privilege where privilege = 'Archive Patient'</sqlCheck>
+		</preConditions>
+		<insert tableName="privilege">
+			<column name="privilege" value="Archive Patient" />
+			<column name="description" value="Added by Archival Module. ALlows user to perform archive operation" />
+			<column name="uuid" value="0e7d2b05-4a97-11eb-8edb-00ff41827b16" />
+		</insert>
+	</changeSet>
+	<changeSet id="archival-2020-12-30_2" author="ali.habib">
+		<preConditions onFail="MARK_RAN">
+			<sqlCheck expectedResult="0">select count(*) from privilege where privilege = 'Retrieve Patient'</sqlCheck>
+		</preConditions>
+		<insert tableName="privilege">
+			<column name="privilege" value="Retrieve Patient" />
+			<column name="description" value="Added by Archival Module. ALlows user to perform retrieve operation" />
+			<column name="uuid" value="d018c815-4a99-11eb-8edb-00ff41827b16" />
+		</insert>
+	</changeSet>
+	
 
  
 </databaseChangeLog>
