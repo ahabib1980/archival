@@ -122,7 +122,7 @@ public class ArchivedEncounterProvider extends BaseOpenmrsData {
 		ep.setEncounter(Context.getEncounterService().getEncounter(this.getEncounterId()));
 		ep.setEncounterProviderId(this.getEncounterProviderId());
 		ep.setEncounterRole(Context.getEncounterService().getEncounterRole(this.getEncounterRoleId()));
-		ep.setProvider(Context.getProviderService().getProvider(this.getEncounterProviderId()));
+		ep.setProvider(Context.getProviderService().getProvider(this.getProviderId()));
 		ep.setUuid(this.getUuid());
 		ep.setChangedBy(this.getChangedBy());
 		ep.setCreator(this.getCreator());

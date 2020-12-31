@@ -268,6 +268,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Override
 	@Transactional
 	public void retrieveArchivedPatient(Integer patientId) {
+		log.info("ARCHIVAL - retrieving Patient: " + patientId);
 		List<ArchivedEncounter> aeList = getArchivedEncountersForPatient(patientId);
 		
 		Session session = sessionFactory.getCurrentSession();
@@ -275,26 +276,47 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		
 		try {
 			
-			tx = session.beginTransaction();
+			//	tx = session.beginTransaction();
 			
 			for (ArchivedEncounter ae : aeList) {
-				retrieveArchivedEncounter(ae.getEncounterId(), session);
+				//retrieveArchivedEncounter(ae.getEncounterId(), session);
+				
+				//ArchivedEncounter ae = getArchivedEncounter(encounterId);
+				
+				List<ArchivedEncounterProvider> aepList = getArchivedEncounterProvidersForArchivedEncounter(ae
+				        .getEncounterId());
+				List<ArchivedObs> aoList = getArchivedObsForArchivedEncounter(ae.getEncounterId());
+				
+				Encounter e = ae.getEncounter();
+				
+				session.saveOrUpdate(e);
+				
+				for (ArchivedEncounterProvider aep : aepList) {
+					retrieveArchivedEncounterProvider(aep.getEncounterProviderId(), session);
+				}
+				
+				for (ArchivedObs ao : aoList) {
+					retrieveArchivedObs(ao.getArchivalObsId(), session);
+				}
+				
+				session.delete(ae);
 				
 			}
 			
-			tx.commit();
+			//tx.commit();
 		}
 		
 		catch (ConstraintViolationException cve) {
 			cve.printStackTrace();
-			tx.rollback();
+			//	tx.rollback();
 			//TODO Logging and proper handling
 		}
 		
 		catch (Exception ex) {
 			ex.printStackTrace();
-			if (tx != null)
-				tx.rollback();
+			/*
+			 * if (tx != null) tx.rollback();
+			 */
 			//TODO Logging and proper handling
 		}
 		
@@ -307,6 +329,8 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Override
 	public void retrieveArchivedEncounter(Integer encounterId, Session session) {
 		
+		System.out.println("ARCHIVAL - retrieving E: " + encounterId);
+		
 		ArchivedEncounter ae = getArchivedEncounter(encounterId);
 		
 		List<ArchivedEncounterProvider> aepList = getArchivedEncounterProvidersForArchivedEncounter(ae.getEncounterId());
@@ -318,11 +342,36 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		session.saveOrUpdate(e);
 		
 		for (ArchivedEncounterProvider aep : aepList) {
-			retrieveArchivedEncounterProvider(aep.getEncounterProviderId(), session);
+			//retrieveArchivedEncounterProvider(aep.getEncounterProviderId(), session);
+			System.out.println("ARCHIVAL - retrieving EP: " + aep.getEncounterProviderId());
+			
+			//ArchivedEncounterProvider aep = getArchivedEncounterProvider(encounterProviderId);
+			
+			EncounterProvider ep = aep.getEncounterProvider();
+			
+			System.out.println("_____________________");
+			System.out.println(ep.getUuid());
+			System.out.println(ep.getEncounter().getId());
+			System.out.println(ep.getEncounterProviderId());
+			System.out.println(ep.getEncounterRole());
+			System.out.println(ep.getProvider().getId());
+			System.out.println("_____________________");
+			
+			session.saveOrUpdate(ep);
+			
+			session.delete(aep);
 		}
 		
 		for (ArchivedObs ao : aoList) {
-			retrieveArchivedObs(ao.getArchivalObsId(), session);
+			//retrieveArchivedObs(ao.getArchivalObsId(), session);
+			System.out.println("ARCHIVAL - retrieving Obs: " + ao.getObsId());
+			//ArchivedObs ao = getArchivedObs(obsId);
+			
+			Obs o = ao.getObs();
+			
+			session.saveOrUpdate(o);
+			
+			session.delete(ao);
 		}
 		
 		session.delete(ae);
@@ -331,9 +380,20 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	
 	@Override
 	public void retrieveArchivedEncounterProvider(Integer encounterProviderId, Session session) {
+		
+		System.out.println("ARCHIVAL - retrieving EP: " + encounterProviderId);
+		
 		ArchivedEncounterProvider aep = getArchivedEncounterProvider(encounterProviderId);
 		
 		EncounterProvider ep = aep.getEncounterProvider();
+		
+		System.out.println("_____________________");
+		System.out.println(ep.getUuid());
+		System.out.println(ep.getEncounter().getId());
+		System.out.println(ep.getEncounterProviderId());
+		System.out.println(ep.getEncounterRole());
+		System.out.println(ep.getProvider().getId());
+		System.out.println("_____________________");
 		
 		session.saveOrUpdate(ep);
 		
@@ -343,6 +403,8 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	
 	@Override
 	public void retrieveArchivedObs(Integer obsId, Session session) {
+		
+		System.out.println("ARCHIVAL - retrieving Obs: " + obsId);
 		ArchivedObs ao = getArchivedObs(obsId);
 		
 		Obs o = ao.getObs();
@@ -363,7 +425,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Override
 	public ArchivedEncounterProvider getArchivedEncounterProvider(Integer encounterProviderId) {
 		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ArchivedEncounterProvider.class);
-		criteria.add(Restrictions.eq("archivalEncounterProviderId", encounterProviderId));
+		criteria.add(Restrictions.eq("encounterProviderId", encounterProviderId));
 		return (ArchivedEncounterProvider) criteria.uniqueResult();
 		
 	}
@@ -398,7 +460,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<ArchivedObs> getArchivedObsForArchivedEncounter(Integer encounterId) {
-		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ArchivedEncounterProvider.class);
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ArchivedObs.class);
 		criteria.addOrder(Order.asc("obsId"));
 		criteria.add(Restrictions.eq("encounterId", encounterId));
 		
