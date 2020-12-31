@@ -170,7 +170,8 @@ public class ArchivedEncounter extends BaseOpenmrsData {
 		Encounter e = new Encounter();
 		e.setEncounterId(this.getEncounterId());
 		e.setEncounterType(Context.getEncounterService().getEncounterType(this.getEncounterType()));
-		e.setPatientId(this.getPatientId());
+		//e.setPatientId(this.getPatientId());
+		e.setPatient(Context.getPatientService().getPatient(this.getPatientId()));
 		e.setLocation(Context.getLocationService().getLocation(this.getLocationId()));
 		e.setForm(Context.getFormService().getForm(this.getFormId()));
 		e.setEncounterDatetime(this.getEncounterDatetime());

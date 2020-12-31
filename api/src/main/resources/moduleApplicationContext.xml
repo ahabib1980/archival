@@ -65,6 +65,11 @@
                     </property>
                     <property name="target">
                         <bean class="org.openmrs.module.archival.api.impl.ArchivalServiceImpl">
+                        <property name="dao"> <!-- Name of the DAO property on your ServiceImpl -->
+                            <bean class="org.openmrs.module.archival.api.dao.impl.ArchivalDAOImpl"> <!-- Your DAO's concrete class -->
+                                <property name="sessionFactory"><ref bean="sessionFactory"/></property>
+                            </bean>
+                        </property>
                         </bean>
                     </property>
                     <property name="preInterceptors">
