@@ -123,6 +123,7 @@ body {
 	});
 	
 	function isValid() {
+		var error = false;
 		var identifier = document.getElementById("patientIdentifier").value;
 		var name = document.getElementById("patientName").value;
 		var gender = document.getElementById("gender");
@@ -138,37 +139,46 @@ body {
 			alertDiv.style.display = "block";
 			errorSpan.style.display = "block";
 			jQuery("#errorSpan").text("Please input filters to search patients");
-			return false;
+			error = true;
 		}
 		else {
 			
 			let regexName =new RegExp("^[a-zA-Z]{3,}(?: [a-zA-Z]+){0,2}$");
-			let regexId =new RegExp(("^[a-zA-Z0-9]{5}[-]{1}[0-9]{1}$");
+			let regexId =new RegExp("^[a-zA-Z0-9]{5}[-]{1}[0-9]{1}$");
+			jQuery("#nameError").text("");
+			jQuery("#identifierError").text("");
+			
 			if(name != null && name != "") {
-				if(!regInt.test(name)) {
+				if(!regexName.test(name)) {
 					jQuery("#nameError").text('<spring:message code="archival.invalid" />');
-					return false;
+					error = true;
 				}
-			}
-			else {
-				jQuery("#nameError").text("");
+				else {
+					jQuery("#nameError").text("");
+				}
 			}
 			
 			if(identifier != null && identifier != "") {
-				if(!regInt.test(identifier)) {
+				
+				if(!regexId.test(identifier)) {
 					jQuery("#identifierError").text('<spring:message code="archival.invalid" />');
-					return false;
+					error = true;
+				}
+				else {
+					jQuery("#identifierError").text("");
 				}
 			}
-			else {
-				jQuery("#identifierError").text("");
+			
+			if(error) {
+				jQuery("#errorSpan").text("");
+				alertDiv.style.display = "none";
+				errorSpan.style.display = "none";
 			}
 			
-			jQuery("#errorSpan").text("");
-			alertDiv.style.display = "none";
-			errorSpan.style.display = "none";
+			
 		}
-		return true;
+
+		return !error;
 	}
 	
 	function searchPatients() { 
