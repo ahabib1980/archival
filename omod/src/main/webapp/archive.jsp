@@ -143,7 +143,7 @@ body {
 					success : function(data) {
 						console.log(data);
 						if(data.status != null) {
-							if(data.status == "fail") {
+							if(data.status == "fail") { //sometimes ajax doesn't handle the response correctly
 								errorMsg = '<spring:message code="archival.validQueryError"/>';
 			    				jQuery("#errorSpan").text(errorMsg);
 								alertDiv.style.display = "block";
@@ -255,16 +255,34 @@ body {
 			    			async : true,
 			    			success : function(data) {
 			    				console.log(data);
-			    				var hrefValue = href = "${pageContext.request.contextPath}/module/archival/downloadReport.form?patientList=" + data.patientIds;
-			    				downloadLink.href = hrefValue;
-			    				var idArray = data.patientIds.split(',');
-			    				console.log(idArray.length);
-			    				var totalCount = idArray.length;
-			    				jQuery("#count").text(totalCount.toString()); //javascript was not working
-			    				archiveLoader.style.visibility = "hidden";
-			    				alertDiv.style.display = "block";
-			    				successSpan.style.display = "block";
-			    				document.documentElement.scrollTop = 0;
+			    				if(data != null) {
+					    			if(data.status != "fail") {
+					    				var hrefValue = href = "${pageContext.request.contextPath}/module/archival/downloadReport.form?patientList=" + data.patientIds;
+					    				downloadLink.href = hrefValue;
+					    				var idArray = [];
+					    				var patientsIdString = data.patientIds;
+					    				if (patientsIdString.indexOf(',') > -1)
+					    					idArray = data.patientIds.split(',');
+					    				else 
+					    					idArray.push(data.patientIds);
+					    				console.log(idArray.length);
+					    				var totalCount = idArray.length;
+					    				jQuery("#count").text(totalCount.toString()); //javascript was not working
+					    				archiveLoader.style.visibility = "hidden";
+					    				alertDiv.style.display = "block";
+					    				successSpan.style.display = "block";
+					    				document.documentElement.scrollTop = 0;
+				    				}
+					    			else { // handling because ajax does not handle error appropriately
+					    				archiveLoader.style.visibility = "hidden";
+					    				errorMsg = '<spring:message code="archival.archiveError" />';
+					    				jQuery("#errorSpan").text(errorMsg);
+					    				alertDiv.style.display = "block";
+					    				errorSpan.style.display = "block";
+					    				document.documentElement.scrollTop = 0;
+					    			}
+			    				}
+			    				
 			    			},
 			    			error : function(data) {
 			    				console.log("fail  : " + data);
