@@ -97,14 +97,11 @@ public class RetrievalController {
 		
 		// if not passed, receiving empty parameters
 		try {
-			// TODO: refactor: retrieve patients method was not implmented that's why using the query method
-			String query = "Select * from patient p inner join person_name pn on p.patient_id = pn.person_id where pn.given_name like '%a%';";
-			List<Patient> patients = archivalService.getPatientListForArchival(query);
+			
 			String patientIdentifier = identifier == "" ? null : identifier;
 			String patientName = name == "" ? null : name;
 			String patientGender = gender == "" ? null : gender;
-			List<Patient> patientss = archivalService.getArchivedPatients(patientIdentifier, patientName, patientGender,
-			    null, null, null);
+			List<Patient> patients = archivalService.getArchivedPatients(patientIdentifier, patientName, patientGender);
 			List<PatientDto> patientDtoList = new ArrayList<PatientDto>();
 			Logger.getAnonymousLogger().info(
 			    ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Count of searched patients is: " + patients.size());
@@ -139,12 +136,18 @@ public class RetrievalController {
 	        @RequestParam(value = "patientId", required = false) String patientId) {
 		
 		JsonObject responseObj = new JsonObject();
-		responseObj.addProperty("success", true);
 		Logger.getAnonymousLogger().info(
 		    ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Patient ID: " + patientId);
 		
-		Boolean status = archivalService.retrievePatient(Integer.parseInt(patientId));
-		// TODO: complete it
+		try {
+			Boolean status = archivalService.retrievePatient(Integer.parseInt(patientId));
+			responseObj.addProperty("status", status ? "success" : "fail");
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			responseObj.addProperty("status", "fail");
+			return responseObj.toString();
+		}
 		return responseObj.toString();
 	}
 	

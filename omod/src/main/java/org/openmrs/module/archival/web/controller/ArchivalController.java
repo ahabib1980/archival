@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -70,7 +71,6 @@ public class ArchivalController {
 		
 		String json = "";
 		JsonObject jsonObj = new JsonObject();
-		JsonObject responseObj = new JsonObject();
 		JsonArray patientArray = new JsonArray();
 		archivalService = Context.getService(ArchivalService.class);
 		
@@ -112,11 +112,18 @@ public class ArchivalController {
 		JsonObject responseObj = new JsonObject();
 		Logger.getAnonymousLogger().info(
 		    ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Patient array string: " + patientIdArray);
-		String[] patientIds = patientIdArray.split(",");
-		List<Patient> patients = new ArrayList<Patient>();
 		
 		try {
-			for (String id : patientIds) {
+			ArrayList<String> patientArrayList = new ArrayList<String>();
+			if (patientIdArray.contains(",")) {
+				String[] patientIds = patientIdArray.split(",");
+				patientArrayList = (ArrayList<String>) Arrays.asList(patientIds);
+			} else
+				patientArrayList.add(patientIdArray);
+			
+			List<Patient> patients = new ArrayList<Patient>();
+			
+			for (String id : patientArrayList) {
 				Patient pat = Context.getPatientService().getPatient(Integer.parseInt(id));
 				patients.add(pat);
 			}
@@ -138,9 +145,15 @@ public class ArchivalController {
 	public ResponseEntity<byte[]> downloadReport(@RequestParam(value = "patientList", required = false) String patientIdArray)
 	        throws IOException {
 		
-		String[] patientIds = patientIdArray.split(",");
+		ArrayList<String> patientArrayList = new ArrayList<String>();
+		if (patientIdArray.contains(",")) {
+			String[] patientIds = patientIdArray.split(",");
+			patientArrayList = (ArrayList<String>) Arrays.asList(patientIds);
+		} else
+			patientArrayList.add(patientIdArray);
+		
 		List<PatientDto> patientDtos = new ArrayList<PatientDto>();
-		for (String id : patientIds) {
+		for (String id : patientArrayList) {
 			Patient pat = Context.getPatientService().getPatient(Integer.parseInt(id));
 			patientDtos.add(new PatientDto(pat));
 		}

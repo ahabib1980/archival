@@ -38,8 +38,7 @@ body {
 		</h2>
 	</div>
 	<div id="retrievalAlert">
-		<span id="successSpan" class="success" style="display: none">Success!
-			Patient was retrieved successfully</span>
+		<span id="successSpan" class="success" style="display: none"><spring:message code="archival.retrieveSuccess" /></span>
 			<span id="errorSpan" class="error" style="display: none"></span>
 	</div>
 </div>
@@ -142,6 +141,29 @@ body {
 			return false;
 		}
 		else {
+			
+			let regexName =new RegExp("^[a-zA-Z]{3,}(?: [a-zA-Z]+){0,2}$");
+			let regexId =new RegExp(("^[a-zA-Z0-9]{5}[-]{1}[0-9]{1}$");
+			if(name != null && name != "") {
+				if(!regInt.test(name)) {
+					jQuery("#nameError").text('<spring:message code="archival.invalid" />');
+					return false;
+				}
+			}
+			else {
+				jQuery("#nameError").text("");
+			}
+			
+			if(identifier != null && identifier != "") {
+				if(!regInt.test(identifier)) {
+					jQuery("#identifierError").text('<spring:message code="archival.invalid" />');
+					return false;
+				}
+			}
+			else {
+				jQuery("#identifierError").text("");
+			}
+			
 			jQuery("#errorSpan").text("");
 			alertDiv.style.display = "none";
 			errorSpan.style.display = "none";
@@ -257,21 +279,30 @@ body {
 			success : function(data) {
 				console.log(data);
 				if(data.status != null) {
-					errorMsg = '<spring:message code="archival.patientRetrieveError"/>';
-    				jQuery("#errorSpan").text(errorMsg);
-					alertDiv.style.display = "block";
-    				errorSpan.style.display = "block";
-    				document.documentElement.scrollTop = 0;
-				}
-				else {
-					console.log(data);
-
+					if(data.status == "fail") { //sometimes ajax doesn't handle the response correctly
+						errorMsg = '<spring:message code="archival.patientRetrieveError"/>';
+	    				jQuery("#errorSpan").text(errorMsg);
+						alertDiv.style.display = "block";
+						errorSpan.style.display = "block";
+	    				document.documentElement.scrollTop = 0;
+					}
+					else if(data.status == "success") {
+						alertDiv.style.display = "block";
+	    				successSpan.style.display = "block";
+	    				document.documentElement.scrollTop = 0;
+					}
 				}
 				searchSpinner.style.visibility = "hidden";
 			},
 			error : function(data) {
-				console.log("fail  : " + data);
+				console.log("fail");
+				console.log(data);
+				errorMsg = '<spring:message code="archival.patientRetrieveError"/>';
+				jQuery("#errorSpan").text(errorMsg);
+				alertDiv.style.display = "block";
+				errorSpan.style.display = "block";
 				searchSpinner.style.visibility = "hidden";
+				document.documentElement.scrollTop = 0;
 			},
 			done : function(e) {
 				console.log("DONE");
