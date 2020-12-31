@@ -61,11 +61,11 @@ public interface ArchivalDao {
 	
 	void retrieveArchivedPatient(Integer patientId);
 	
-	void retrieveArchivedEncounter(Integer archivedEncounterId, DbSession session);
+	void retrieveArchivedEncounter(Integer archivedEncounterId, Session session);
 	
-	void retrieveArchivedEncounterProvider(Integer archivedEncounterProviderId, DbSession session);
+	void retrieveArchivedEncounterProvider(Integer archivedEncounterProviderId, Session session);
 	
-	void retrieveArchivedObs(Integer archivedObsId, DbSession session);
+	void retrieveArchivedObs(Integer archivedObsId, Session session);
 	
 	ArchivedEncounter getArchivedEncounter(Integer encounterId);
 	

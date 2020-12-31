@@ -27,6 +27,9 @@
 		<module>api</module>
 		<module>omod</module>
 	</modules>
+	
+	
+   
 
 	<repositories>
 		<repository>
@@ -51,8 +54,10 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
+	
+	
 
     <properties>
-        <openmrsPlatformVersion>1.11.6</openmrsPlatformVersion>
+        <openmrsPlatformVersion>2.1.2</openmrsPlatformVersion>
     </properties>
 </project>

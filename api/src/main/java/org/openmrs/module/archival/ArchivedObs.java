@@ -35,6 +35,10 @@ import org.openmrs.api.context.Context;
 @Table(name = "archival_obs")
 public class ArchivedObs extends BaseOpenmrsData {
 	
+	public ArchivedObs() {
+		
+	}
+	
 	public ArchivedObs(Obs o) {
 		// TODO fill this out 
 		this.setObsId(o.getId());

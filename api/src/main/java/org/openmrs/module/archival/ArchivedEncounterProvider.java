@@ -33,6 +33,10 @@ import org.openmrs.api.context.Context;
 @Table(name = "archival_encounter_provider")
 public class ArchivedEncounterProvider extends BaseOpenmrsData {
 	
+	public ArchivedEncounterProvider() {
+		
+	}
+	
 	public ArchivedEncounterProvider(EncounterProvider ep) {
 		this.setEncounterId(ep.getEncounter().getEncounterId());
 		this.setEncounterProviderId(ep.getEncounterProviderId());
@@ -134,7 +138,7 @@ public class ArchivedEncounterProvider extends BaseOpenmrsData {
 	
 	@Id
 	@GeneratedValue
-	@Column(name = "archival_encounter_provider_id")
+	@Column(name = "archival_encounter_id")
 	private Integer archivalEncounterProviderId;
 	
 	@Basic

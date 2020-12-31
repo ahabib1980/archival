@@ -34,6 +34,7 @@ import org.openmrs.module.archival.ArchivedObs;
 import org.openmrs.module.archival.api.dao.ArchivalDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class ArchivalDAOImpl implements ArchivalDao {
@@ -41,11 +42,9 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	protected final Log log = LogFactory.getLog(this.getClass());
 	
 	@Autowired
-	private DbSessionFactory sessionFactory;
-	
-	/* Original code. Commented due to Hibernate version conflicts. OpenMRS dependencies that came with SDK include Hibernate 3.x. SessionFactory requires  4.x
-	 * 
-	 * private Session sessionFactory;  
+	//private DbSessionFactory sessionFactory;
+	//Original code. Commented due to Hibernate version conflicts. OpenMRS dependencies that came with SDK include Hibernate 3.x. SessionFactory requires  4.x
+	private SessionFactory sessionFactory;
 	
 	public SessionFactory getSessionFactory() {
 		return sessionFactory;
@@ -55,17 +54,16 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		this.sessionFactory = sessionFactory;
 	}
 	
-	public SessionFactory getSessionFactory() {
-		return sessionFactory;
-	}*/
+	/*
+	 * public SessionFactory getSessionFactory() { return sessionFactory; }
+	 */
 	
-	public DbSessionFactory getSessionFactory() {
-		return sessionFactory;
-	}
-	
-	public void setSessionFactory(DbSessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
+	/*
+	 * public DbSessionFactory getSessionFactory() { return sessionFactory; }
+	 * 
+	 * public void setSessionFactory(DbSessionFactory sessionFactory) {
+	 * this.sessionFactory = sessionFactory; }
+	 */
 	
 	@Override
 	public List<Patient> getPatientListForArchival(String query) {
@@ -88,25 +86,23 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	}
 	
 	@Override
+	@Transactional
 	public void archiveEncounter(Encounter e, Set<EncounterProvider> epSet, Set<Obs> obsSet) {
 		
-		//Session session = sessionFactory.getCurrentSession();
-		//Transaction tx = null;
+		Session session = sessionFactory.getCurrentSession();
+		Transaction tx = null;
 		
-		DbSession session = sessionFactory.getCurrentSession();
+		//DbSession session = sessionFactory.getCurrentSession();
 		//
 		
 		try {
 			
-			/* ORIGINAL code. Commented due to hibernate conflicts
-			 * tx = session.beginTransaction();
+			tx = session.beginTransaction();
+			
+			/*
+			 * if (!session.getTransaction().isActive()) session.getTransaction().begin();
+			 * else { session.getTransaction().commit(); session.getTransaction().begin(); }
 			 */
-			if (!session.getTransaction().isActive())
-				session.getTransaction().begin();
-			else {
-				session.getTransaction().commit();
-				session.getTransaction().begin();
-			}
 			
 			if (epSet != null) {
 				for (EncounterProvider ep : epSet) {
@@ -129,11 +125,10 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			session.saveOrUpdate(new ArchivedEncounter(e));
 			session.delete(e);
 			
-			/* ORIGINAL code. Commented due to hibernate conflicts
-			 * tx.commit(); 
-			 * */
+			// ORIGINAL code. Commented due to hibernate conflicts
+			tx.commit();
 			
-			session.getTransaction().commit();
+			//session.getTransaction().commit();
 			
 		}
 		
@@ -141,13 +136,14 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			System.out.print("CVE: ");
 			cve.printStackTrace();
 			
-			/* ORIGINAL CODE: Commented due to Hibernate version conflicts
-			 * tx.rollback(); 
-			 * */
-			if (session.getTransaction().isActive()) {
-				log.info("ARCHIVAL - rolling back");
-				session.getTransaction().rollback();
-			}
+			log.info("ARCHIVAL - rolling back");
+			//ORIGINAL CODE: Commented due to Hibernate version conflicts
+			tx.rollback();
+			
+			//if (session.getTransaction().isActive()) {
+			
+			//session.getTransaction().rollback();
+			//}
 			
 			log.error(cve.getStackTrace().toString());
 			//TODO Logging and proper handling
@@ -156,15 +152,15 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		catch (Exception ex) {
 			System.out.print("ERROR: ");
 			ex.printStackTrace();
+			log.info("ARCHIVAL - rolling back");
+			///ORIGINAL CODE: Commented due to Hibernate version conflicts
+			tx.rollback();
 			
-			/* ORIGINAL CODE: Commented due to Hibernate version conflicts
-			 * tx.rollback(); 
-			 * */
-			
-			if (session.getTransaction().isActive()) {
-				log.info("ARCHIVAL - rolling back");
-				session.getTransaction().rollback();
-			}
+			/*
+			 * if (session.getTransaction().isActive()) {
+			 * 
+			 * session.getTransaction().rollback(); }
+			 */
 			
 			log.error(ex.getStackTrace().toString());
 			//TODO Logging and proper handling
@@ -270,13 +266,16 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	}
 	
 	@Override
+	@Transactional
 	public void retrieveArchivedPatient(Integer patientId) {
 		List<ArchivedEncounter> aeList = getArchivedEncountersForPatient(patientId);
 		
-		DbSession session = sessionFactory.getCurrentSession();
-		Transaction tx = session.beginTransaction();
+		Session session = sessionFactory.getCurrentSession();
+		Transaction tx = null;
 		
 		try {
+			
+			tx = session.beginTransaction();
 			
 			for (ArchivedEncounter ae : aeList) {
 				retrieveArchivedEncounter(ae.getEncounterId(), session);
@@ -292,14 +291,21 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			//TODO Logging and proper handling
 		}
 		
-		finally {
-			session.close();
+		catch (Exception ex) {
+			ex.printStackTrace();
+			if (tx != null)
+				tx.rollback();
+			//TODO Logging and proper handling
 		}
+		
+		/*
+		 * finally { session.close(); }
+		 */
 		
 	}
 	
 	@Override
-	public void retrieveArchivedEncounter(Integer encounterId, DbSession session) {
+	public void retrieveArchivedEncounter(Integer encounterId, Session session) {
 		
 		ArchivedEncounter ae = getArchivedEncounter(encounterId);
 		
@@ -324,7 +330,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	}
 	
 	@Override
-	public void retrieveArchivedEncounterProvider(Integer encounterProviderId, DbSession session) {
+	public void retrieveArchivedEncounterProvider(Integer encounterProviderId, Session session) {
 		ArchivedEncounterProvider aep = getArchivedEncounterProvider(encounterProviderId);
 		
 		EncounterProvider ep = aep.getEncounterProvider();
@@ -336,7 +342,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	}
 	
 	@Override
-	public void retrieveArchivedObs(Integer obsId, DbSession session) {
+	public void retrieveArchivedObs(Integer obsId, Session session) {
 		ArchivedObs ao = getArchivedObs(obsId);
 		
 		Obs o = ao.getObs();
@@ -357,7 +363,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Override
 	public ArchivedEncounterProvider getArchivedEncounterProvider(Integer encounterProviderId) {
 		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ArchivedEncounterProvider.class);
-		criteria.add(Restrictions.eq("archivedEncounterProviderId", encounterProviderId));
+		criteria.add(Restrictions.eq("archivalEncounterProviderId", encounterProviderId));
 		return (ArchivedEncounterProvider) criteria.uniqueResult();
 		
 	}
@@ -365,7 +371,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Override
 	public ArchivedObs getArchivedObs(Integer archivedObsId) {
 		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ArchivedObs.class);
-		criteria.add(Restrictions.eq("archivedObsId", archivedObsId));
+		criteria.add(Restrictions.eq("archivalObsId", archivedObsId));
 		return (ArchivedObs) criteria.uniqueResult();
 	}
 	
@@ -373,7 +379,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Override
 	public List<ArchivedEncounter> getArchivedEncountersForPatient(Integer patientId) {
 		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ArchivedEncounter.class);
-		criteria.addOrder(Order.asc("archivedEncounterId"));
+		criteria.addOrder(Order.asc("archivalEncounterId"));
 		criteria.add(Restrictions.eq("patientId", patientId));
 		
 		return criteria.list();
