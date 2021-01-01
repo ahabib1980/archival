@@ -110,7 +110,7 @@ public class ArchivalServiceImpl extends BaseOpenmrsService implements ArchivalS
 	public void archiveEncounter(Encounter encounter) {
 		Set<EncounterProvider> epSet = encounter.getEncounterProviders();
 		
-		Set<Obs> obsSet = encounter.getAllObs();
+		Set<Obs> obsSet = encounter.getAllObs(true);
 		
 		dao.archiveEncounter(encounter, epSet, obsSet);
 		

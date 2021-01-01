@@ -20,6 +20,7 @@ import javax.persistence.Table;
 
 import org.openmrs.BaseOpenmrsData;
 import org.openmrs.Obs;
+import org.openmrs.Obs.Status;
 import org.openmrs.api.context.Context;
 
 /**
@@ -40,7 +41,7 @@ public class ArchivedObs extends BaseOpenmrsData {
 	}
 	
 	public ArchivedObs(Obs o) {
-		// TODO fill this out 
+		
 		this.setObsId(o.getId());
 		this.setPersonId(o.getPersonId());
 		this.setConceptId(o.getConcept().getConceptId());
@@ -87,18 +88,30 @@ public class ArchivedObs extends BaseOpenmrsData {
 		this.setValueComplex(o.getValueComplex());
 		this.setComments(o.getComment());
 		this.setUuid(this.getUuid());
-		this.setPreviousVersion(this.getPreviousVersion());
-		this.setFormNamespaceAndPath(this.getFormNamespaceAndPath());
-		this.setStatus(this.getStatus());
-		this.setInterpretation(this.getInterpretation());
-		this.setChangedBy(this.getChangedBy());
-		this.setCreator(this.getCreator());
-		this.setDateChanged(this.getDateChanged());
-		this.setDateCreated(this.getDateCreated());
-		this.setDateVoided(this.getDateVoided());
-		this.setVoided(this.getVoided());
-		this.setVoidedBy(this.getVoidedBy());
-		this.setVoidReason(this.getVoidReason());
+		if (o.getPreviousVersion() != null)
+			this.setPreviousVersion(o.getPreviousVersion().getObsId());
+		else
+			this.setPreviousVersion(null);
+		this.setFormNamespaceAndPath(null);
+		
+		if (o.getStatus() != null)
+			this.setStatus(o.getStatus().toString());
+		else
+			this.setStatus(null);
+		
+		if (o.getInterpretation() != null)
+			this.setInterpretation(o.getInterpretation().toString());
+		else
+			this.setInterpretation(null);
+		
+		this.setChangedBy(o.getChangedBy());
+		this.setCreator(o.getCreator());
+		this.setDateChanged(o.getDateChanged());
+		this.setDateCreated(o.getDateCreated());
+		this.setDateVoided(o.getDateVoided());
+		this.setVoided(o.getVoided());
+		this.setVoidedBy(o.getVoidedBy());
+		this.setVoidReason(o.getVoidReason());
 		
 	}
 	
@@ -419,7 +432,8 @@ public class ArchivedObs extends BaseOpenmrsData {
 		
 		Obs o = new Obs();
 		
-		o.setObsId(this.getId());
+		o.setObsId(this.getObsId());
+		o.setId(this.getObsId());
 		o.setPerson(Context.getPersonService().getPerson(this.getPersonId()));
 		o.setConcept(Context.getConceptService().getConcept(this.getConceptId()));
 		o.setEncounter(Context.getEncounterService().getEncounter(this.getEncounterId()));
@@ -433,7 +447,9 @@ public class ArchivedObs extends BaseOpenmrsData {
 			o.setLocation(Context.getLocationService().getLocation(this.getLocationId()));
 		
 		if (this.getObsGroupId() != null)
-			o.setObsGroup(Context.getObsService().getObs(this.getObsGroupId()));
+			o.setObsGroup(new Obs(getObsGroupId()));
+		
+		//new Obs(getObsGroupId()));
 		
 		o.setAccessionNumber(this.getAccessionNumber());
 		o.setValueGroupId(this.getValueGroupId());
@@ -455,11 +471,22 @@ public class ArchivedObs extends BaseOpenmrsData {
 		o.setComment(this.getComments());
 		o.setUuid(this.getUuid());
 		
-		if (this.previousVersion != null)
-			o.setPreviousVersion(Context.getObsService().getObs(this.getPreviousVersion()));
+		if (this.getPreviousVersion() != null) {
+			//o.setPreviousVersion(Context.getObsService().getObs(this.getPreviousVersion()));
+			o.setPreviousVersion(new Obs(this.getPreviousVersion()));
+		}
 		//o.getF
-		/*o.setStatus(this.getStatus());
-		o.setInterpretation(this.getInterpretation());*/
+		
+		if (this.getStatus().equals("FINAL")) {
+			o.setStatus(Status.FINAL);
+		} else if (this.getStatus().equals("AMENDED")) {
+			o.setStatus(Status.AMENDED);
+		} else if (this.getStatus().equals("PRELIMINARY")) {
+			o.setStatus(Status.PRELIMINARY);
+		} else
+			o.setStatus(null);
+		
+		//o.setInterpretation(this.getInterpretation());
 		o.setChangedBy(this.getChangedBy());
 		o.setCreator(this.getCreator());
 		o.setDateChanged(this.getDateChanged());

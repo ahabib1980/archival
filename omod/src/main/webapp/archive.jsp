@@ -185,6 +185,7 @@ body {
 							patientTableHtml = patientTableHtml.concat('</tbody></table>');
 							patientTableHtml = patientTableHtml.concat('<openmrs:hasPrivilege privilege="Archive Patient">');
 							patientTableHtml = patientTableHtml.concat('<button id="archive" onclick="archivePatients()"><spring:message code="archival.archive"/></button>');
+							//patientTableHtml = patientTableHtml.concat('<button id="archive" ><spring:message code="archival.archive"/></button>');
 							patientTableHtml = patientTableHtml.concat('<img id="archiveSpinner" src="/openmrs/images/loading.gif" style="visibility: hidden;">');
 							patientTableHtml = patientTableHtml.concat('</openmrs:hasPrivilege>');
 							document.getElementById("patientTableDiv").innerHTML = patientTableHtml;
