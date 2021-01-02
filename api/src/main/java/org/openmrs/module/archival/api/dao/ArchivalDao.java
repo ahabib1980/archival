@@ -9,12 +9,10 @@
  */
 package org.openmrs.module.archival.api.dao;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import org.openmrs.Patient;
-import org.openmrs.User;
 import org.openmrs.api.APIException;
 import org.openmrs.api.db.hibernate.DbSession;
 import org.openmrs.module.archival.ArchivedEncounter;

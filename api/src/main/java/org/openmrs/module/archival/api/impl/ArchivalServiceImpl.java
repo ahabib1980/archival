@@ -9,7 +9,6 @@
  */
 package org.openmrs.module.archival.api.impl;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -17,14 +16,12 @@ import org.openmrs.Encounter;
 import org.openmrs.EncounterProvider;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
-import org.openmrs.User;
+
 import org.openmrs.api.APIException;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.impl.BaseOpenmrsService;
-import org.openmrs.module.archival.ArchivedEncounter;
-import org.openmrs.module.archival.ArchivedEncounterProvider;
-import org.openmrs.module.archival.ArchivedObs;
+
 import org.openmrs.module.archival.api.ArchivalService;
 import org.openmrs.module.archival.api.dao.ArchivalDao;
 import org.springframework.beans.factory.annotation.Autowired;

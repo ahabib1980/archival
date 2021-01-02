@@ -2,7 +2,7 @@ package org.openmrs.module.archival.api.dao.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,12 +25,11 @@ import org.openmrs.PatientIdentifierType;
 import org.openmrs.Person;
 import org.openmrs.PersonAttribute;
 import org.openmrs.PersonAttributeType;
-import org.openmrs.User;
+
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.db.hibernate.DbSession;
-import org.openmrs.api.db.hibernate.DbSessionFactory;
-import org.openmrs.api.db.hibernate.HibernateUtil;
+
 import org.openmrs.module.archival.ArchivedEncounter;
 import org.openmrs.module.archival.ArchivedEncounterProvider;
 import org.openmrs.module.archival.ArchivedObs;
@@ -72,6 +71,9 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	
 	@Override
 	public List<Patient> getPatientListForArchival(String query) {
+		
+		//TODO: Remove patients who are already archived based on Archived PersonAttributeType
+		
 		ArrayList<Patient> list = new ArrayList<Patient>();
 		AdministrationService service = Context.getAdministrationService();
 		List<List<Object>> idList = service.executeSQL(query, true);
@@ -94,14 +96,22 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Transactional
 	public void archiveEncounter(Encounter e, Set<EncounterProvider> epSet, Set<Obs> obsSet) {
 		
+		
+		//TODO: Transaction mgmt
+		//TODO: return detail based on how many archived, and how many failed
 		ArrayList<ObsWrapper> obsList = new ArrayList<ObsWrapper>();
 		
+		//Move from Set to List to allow sorting
 		if (obsSet != null) {
 			for (Obs o : obsSet) {
 				obsList.add(new ObsWrapper(o));
 			}
 		}
 		
+		//Sort in order of ASC obsId and then reverse. Deleting in reverse ensures that previous version and obs group dependencies do 
+		//not result in Constraint Violations. This works because the obsgroup id for a given obs will always be less than the obs_id for that obs
+		//Similarly, if an obs has been voided and then replaced by an updated one, the previous version for the new obs will be less than the obs_id for
+		//that obs
 		Collections.sort(obsList);
 		Collections.reverse(obsList);
 		
@@ -110,21 +120,19 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		try {
 			
 			if (epSet != null) {
-				for (EncounterProvider ep : epSet) {
-					//archiveEncounterProvider(ep, session);
+				for (EncounterProvider ep : epSet) {		
 					session.saveOrUpdate(new ArchivedEncounterProvider(ep));
 					e.getEncounterProviders().remove(ep);
 					session.delete(ep);
 				}
 			}
 			
-			//if (obsSet != null) {
 			for (ObsWrapper ow : obsList) {
-				//archiveObs(o, session);
-				session.saveOrUpdate(new ArchivedObs(ow.getObs()));
-				//	e.getObs().remove(o);
 				
-				//	session.delete(o);
+				session.saveOrUpdate(new ArchivedObs(ow.getObs()));
+
+				//query used here because OpenMRS technically does not allow Obs to be edited as of v2.0
+				//so session.saveOrUpdate() fails with odd exceptions. A direct query works around this.
 				String queryString = "delete from Obs where obs_id=" + ow.getObs().getObsId();
 				System.out.println("DEL OBS: " + queryString);
 				Query query = session.createSQLQuery(queryString);
@@ -162,6 +170,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		
 	}
 	
+	//Not used to simplify Tx mgmt
 	@Override
 	public void archiveEncounterProvider(EncounterProvider ep, DbSession session) throws ConstraintViolationException {
 		
@@ -170,6 +179,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		
 	}
 	
+	//Not used to simplify Tx mgmt
 	@Override
 	public void archiveObs(Obs o, DbSession session) throws ConstraintViolationException {
 		
@@ -202,21 +212,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		List<Patient> patList = null;
 		ArrayList<Patient> midList = new ArrayList<Patient>();
 		ArrayList<Patient> finalList = new ArrayList<Patient>();
-		
-		/*
-		 * String query = null;
-		 * 
-		 * query =
-		 * "select * from person as p JOIN patient_identifier as pi ON p.person_id = pi.patient_id where "
-		 * ;
-		 * 
-		 * if(identifier!=null) { query += "pi.identifier_type = " + pitId +
-		 * " AND pi.identifier = '" + identifier + "'"; }
-		 * 
-		 * if(name != null) {
-		 * 
-		 * }
-		 */
+
 		
 		patList = Context.getPatientService().getPatients(name, identifier, pits, true);
 		
@@ -262,42 +258,22 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Override
 	@Transactional
 	public void retrieveArchivedPatient(Integer patientId) {
+		
+		//TODO: Transaction Mgmt
 		log.info("ARCHIVAL - retrieving Patient: " + patientId);
 		List<ArchivedEncounter> aeList = getArchivedEncountersForPatient(patientId);
 		
 		Session session = sessionFactory.getCurrentSession();
-		Transaction tx = null;
-		
+				
 		try {
-			
-			//	tx = session.beginTransaction();
-			
+		
+			//this should all happen in a single Tx - either retrieve everything or nothing
 			for (ArchivedEncounter ae : aeList) {
 				retrieveArchivedEncounter(ae, session);
 				
-				//ArchivedEncounter ae = getArchivedEncounter(encounterId);
-				
-				//	List<ArchivedEncounterProvider> aepList = getArchivedEncounterProvidersForArchivedEncounter(ae
-				//	        .getEncounterId());
-				//	List<ArchivedObs> aoList = getArchivedObsForArchivedEncounter(ae.getEncounterId());
-				
-				//	Encounter e = ae.getEncounter();
-				
-				//	session.saveOrUpdate(e);
-				
-				/*
-				 * for (ArchivedEncounterProvider aep : aepList) {
-				 * retrieveArchivedEncounterProvider(aep.getEncounterProviderId(), session); }
-				 * 
-				 * for (ArchivedObs ao : aoList) { retrieveArchivedObs(ao.getArchivalObsId(),
-				 * session); }
-				 */
-				
-				//session.delete(ae);
-				
 			}
 			
-			//tx.commit();
+			//Once done with retrieve operation, set Archived to No to indicate that patient has been retrieved
 			PersonAttributeType pat = Context.getPersonService().getPersonAttributeTypeByName("Archived");
 			Person person = Context.getPatientService().getPatient(patientId).getPerson();
 			PersonAttribute pa = new PersonAttribute(pat, "No");
@@ -307,21 +283,17 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		
 		catch (ConstraintViolationException cve) {
 			cve.printStackTrace();
-			//	tx.rollback();
+			
 			//TODO Logging and proper handling
 		}
 		
 		catch (Exception ex) {
 			ex.printStackTrace();
-			/*
-			 * if (tx != null) tx.rollback();
-			 */
+			
 			//TODO Logging and proper handling
 		}
 		
-		/*
-		 * finally { session.close(); }
-		 */
+	
 		
 	}
 	
@@ -330,7 +302,6 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		
 		System.out.println("ARCHIVAL - retrieving E: " + ae.getEncounterId());
 		
-		//ArchivedEncounter ae = getArchivedEncounter(encounterId);
 		
 		List<ArchivedEncounterProvider> aepList = getArchivedEncounterProvidersForArchivedEncounter(ae.getEncounterId());
 		List<ArchivedObs> aoList = getArchivedObsForArchivedEncounter(ae.getEncounterId());
@@ -347,10 +318,6 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		Encounter e = ae.getEncounter();
 		
 		for (ArchivedEncounterProvider aep : aepList) {
-			//retrieveArchivedEncounterProvider(aep.getEncounterProviderId(), session);
-			//	System.out.println("ARCHIVAL - retrieving EP: " + aep.getEncounterProviderId());
-			
-			//ArchivedEncounterProvider aep = getArchivedEncounterProvider(encounterProviderId);
 			
 			EncounterProvider ep = aep.getEncounterProvider();
 			ep.setEncounter(e);
@@ -363,27 +330,20 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			System.out.println(ep.getProvider().getId());
 			System.out.println("_____________________");
 			
-			//	System.out.println("ARCHIVAL - adding EP: " + ep.getEncounterProviderId());
+			//	
 			
 			epSet.add(ep);
 			aepDelList.add(aep);
 			epList.add(ep);
-			
-			//session.delete(aep);
 		}
 		
 		for (ArchivedObs ao : aoList) {
-			//retrieveArchivedObs(ao.getArchivalObsId(), session);
-			//System.out.println("ARCHIVAL - retrieving Obs: " + ao.getObsId());
-			//ArchivedObs ao = getArchivedObs(obsId);
+		
 			
 			Obs o = ao.getObs();
 			o.setEncounter(e);
 			
-			//System.out.println("ARCHIVAL - saving Obs: " + o.getObsId());
-			//session.saveOrUpdate(o);
 			
-			//session.delete(ao);
 			oSet.add(o);
 			aoDelList.add(ao);
 			oList.add(o);
@@ -396,7 +356,6 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		}
 		e.setObs(oSet);
 		
-		//session.saveOrUpdate(e);
 		
 		//ADD ENCOUNTER
 		String encounterQuery = ArchivalUtil.eToQuery(e);
@@ -417,6 +376,8 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			query.executeUpdate();
 			
 		}
+		
+		//TODO: uncomment this one proper testing done.
 		
 		/*
 		 * for (ArchivedEncounterProvider aep : aepDelList) { session.delete(aep); }
@@ -511,6 +472,9 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Override
 	public List<ArchivedObs> getArchivedObsForArchivedEncounter(Integer encounterId) {
 		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ArchivedObs.class);
+		
+		//ORDER in ASC order of obs_id so that earlier obs are restored first, allowing obsgroup and
+		//previous version dependencies to be restored with Constraint Violations
 		criteria.addOrder(Order.asc("obsId"));
 		criteria.add(Restrictions.eq("encounterId", encounterId));
 		
