@@ -11,12 +11,16 @@ package org.openmrs.module.archival.api;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.openmrs.Encounter;
+import org.openmrs.EncounterProvider;
+import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.User;
 import org.openmrs.api.APIException;
 import org.openmrs.api.OpenmrsService;
+import org.openmrs.module.archival.ArchivalResult;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -25,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 
  * @author ali.habib@ihsinformatics.com
  */
-@Transactional
+
 public interface ArchivalService extends OpenmrsService {
 	
 	/**
@@ -39,6 +43,16 @@ public interface ArchivalService extends OpenmrsService {
 	List<Patient> getPatientListForArchival(String query) throws APIException;
 	
 	/**
+	 * Retrieves a list of patient encounters
+	 * 
+	 * @param patient id
+	 * @return list of all encounters for a given patient
+	 * @throws
+	 */
+	
+	List<Encounter> getPatientEncounters(Integer patientId) throws APIException;
+	
+	/**
 	 * Archives a list of patients
 	 * 
 	 * @param list of patients
@@ -46,7 +60,7 @@ public interface ArchivalService extends OpenmrsService {
 	 * @throws
 	 */
 	
-	void archivePatients(List<Patient> patientList) throws APIException;
+	//	ArchivalResult archivePatients(List<Patient> patientList) throws APIException;
 	
 	/**
 	 * Archives a list of patients
@@ -56,7 +70,7 @@ public interface ArchivalService extends OpenmrsService {
 	 * @throws
 	 */
 	
-	void archivePatient(Integer patientId) throws APIException;
+	//	void archivePatient(Integer patientId) throws APIException;
 	
 	/**
 	 * Archives a list of encounters
@@ -66,7 +80,7 @@ public interface ArchivalService extends OpenmrsService {
 	 * @throws
 	 */
 	
-	void archiveEncounters(List<Encounter> encounterList) throws APIException;
+	//	void archiveEncounters(List<Encounter> encounterList) throws APIException;
 	
 	/**
 	 * Archives an encounter
@@ -76,7 +90,7 @@ public interface ArchivalService extends OpenmrsService {
 	 * @throws
 	 */
 	
-	void archiveEncounter(Encounter encounter) throws APIException;
+	void archiveEncounter(Encounter encounter);//, Set<EncounterProvider> epSet, Set<Obs> obsSet) throws APIException;
 	
 	/**
 	 * Returns a list of archived patients based on various criteria

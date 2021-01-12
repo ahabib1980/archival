@@ -40,7 +40,11 @@ public class ArchivedEncounter extends BaseOpenmrsData {
 		this.setEncounterType(e.getEncounterType().getEncounterTypeId());
 		this.setPatientId(e.getPatient().getPatientId());
 		this.setLocationId(e.getLocation().getId());
-		this.setFormId(e.getForm().getId());
+		if (e.getForm() != null)
+			this.setFormId(e.getForm().getId());
+		else {
+			this.setFormId(null);
+		}
 		this.setEncounterDatetime(e.getEncounterDatetime());
 		this.setUuid(e.getUuid());
 		this.setChangedBy(e.getChangedBy());

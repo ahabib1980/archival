@@ -75,17 +75,20 @@
                     <property name="preInterceptors">
                         <ref bean="serviceInterceptors"/>
                     </property>
-                    <property name="transactionAttributeSource">
+                    <!-- <property name="transactionAttributeSource">
                         <bean class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource"/>
+                    </property> -->
+                    <property name="transactionAttributeSource">
+                        <ref bean="transactionAttributeSource"/>
                     </property>
                 </bean>
-                <bean id="transactionInterceptor"
+                <!-- <bean id="transactionInterceptor"
                       class="org.springframework.transaction.interceptor.TransactionInterceptor">
                     <property name="transactionManager" ref="transactionManager"/>
                     <property name="transactionAttributeSource">
                         <ref bean="transactionAttributeSource"/>
                     </property>
-                </bean>
+                </bean> -->
             </list>
         </property>
     </bean>

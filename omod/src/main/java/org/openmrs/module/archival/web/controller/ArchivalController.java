@@ -16,13 +16,18 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Hibernate;
+import org.openmrs.Encounter;
 import org.openmrs.Patient;
+import org.openmrs.EncounterProvider;
+import org.openmrs.Obs;
 import org.openmrs.api.APIException;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.archival.api.ArchivalService;
@@ -117,18 +122,51 @@ public class ArchivalController {
 			ArrayList<String> patientArrayList = new ArrayList<String>();
 			if (patientIdArray.contains(",")) {
 				String[] patientIds = patientIdArray.split(",");
-				patientArrayList = (ArrayList<String>) Arrays.asList(patientIds);
+				/* patientArrayList = (ArrayList<String>) Arrays.asList(patientIds); */
+				for (int i = 0; i < patientIds.length; i++) {
+					patientArrayList.add(patientIds[i]);
+				}
 			} else
 				patientArrayList.add(patientIdArray);
 			
-			List<Patient> patients = new ArrayList<Patient>();
+			List<Integer> archivedPatients = new ArrayList<Integer>();
+			List<Integer> failedArchivePatients = new ArrayList<Integer>();
+			List<Encounter> encs = new ArrayList<Encounter>();
+			
+			int encounterCount = 0;
 			
 			for (String id : patientArrayList) {
+				
+				encounterCount = 0;
 				Patient pat = Context.getPatientService().getPatient(Integer.parseInt(id));
-				patients.add(pat);
+				
+				if (pat != null) {
+					encs = archivalService.getPatientEncounters(pat.getPatientId());
+					
+					for (Encounter e : encs) {
+						try {
+							
+							archivalService.archiveEncounter(e);
+							encounterCount++;
+						}
+						
+						catch (Exception ex) {
+							ex.printStackTrace();
+						}
+					}
+					
+					if (encounterCount != 0) {
+						//tag as archived
+						//patientCount++;
+						archivedPatients.add(pat.getId());
+					}
+					
+					else {
+						failedArchivePatients.add(pat.getId());
+					}
+				}
 			}
 			
-			archivalService.archivePatients(patients);
 			responseObj.addProperty("patientIds", patientIdArray);
 		}
 		catch (Exception e) {

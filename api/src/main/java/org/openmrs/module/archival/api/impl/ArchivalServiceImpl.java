@@ -30,6 +30,8 @@ import org.openmrs.module.archival.api.dao.ArchivalDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * Implementation of the main service of this module, which is exposed for other modules. See
  * moduleApplicationContext.xml on how it is wired up.
@@ -59,54 +61,23 @@ public class ArchivalServiceImpl extends BaseOpenmrsService implements ArchivalS
 		this.userService = userService;
 	}
 	
-	/*
-	 * @Override public ArchivedEncounter getItemByUuid(String uuid) throws
-	 * APIException { return dao.getItemByUuid(uuid); }
-	 * 
-	 * @Override public ArchivedEncounter saveItem(ArchivedEncounter item) throws
-	 * APIException {
-	 * 
-	 * if (item.getOwner() == null) { item.setOwner(userService.getUser(1)); }
-	 * 
-	 * 
-	 * return dao.saveItem(item); }
-	 */
-	
 	@Override
 	public List<Patient> getPatientListForArchival(String query) {
 		return dao.getPatientListForArchival(query);
 	}
 	
 	@Override
-	public void archivePatients(List<Patient> patientList) {
-		for (Patient p : patientList) {
-			archivePatient(p.getId());
-		}
-	}
-	
-	@Override
-	public void archivePatient(Integer patientId) {
-		
+	public List<Encounter> getPatientEncounters(Integer patientId) {
 		List<Encounter> eList = null;
 		
 		Patient patient = Context.getPatientService().getPatient(patientId);
 		eList = Context.getEncounterService().getEncounters(patient, null, null, null, null, null, null, null, null, true);
 		
-		if (eList != null && eList.size() != 0)
-			archiveEncounters(eList);
-		
+		return eList;
 	}
 	
 	@Override
-	public void archiveEncounters(List<Encounter> encounterList) {
-		if (encounterList != null) {
-			for (Encounter e : encounterList)
-				archiveEncounter(e);
-		}
-		
-	}
-	
-	@Override
+	@Transactional
 	public void archiveEncounter(Encounter encounter) {
 		Set<EncounterProvider> epSet = encounter.getEncounterProviders();
 		

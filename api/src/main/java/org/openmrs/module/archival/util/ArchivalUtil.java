@@ -2,6 +2,7 @@ package org.openmrs.module.archival.util;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.logging.Logger;
 
 import org.openmrs.Encounter;
 import org.openmrs.EncounterProvider;
@@ -72,7 +73,7 @@ public class ArchivalUtil {
 		
 		queryString += "'" + ep.getUuid() + "')";
 		
-		System.out.println("EP Query:" + queryString);
+		Logger.getAnonymousLogger().info("EP Query:" + queryString);
 		
 		return queryString;
 	}
@@ -133,7 +134,7 @@ public class ArchivalUtil {
 		
 		queryString += "'" + e.getUuid() + "')";
 		
-		System.out.println("Enc Query:" + queryString);
+		Logger.getAnonymousLogger().info("Enc Query:" + queryString);
 		
 		return queryString;
 	}
@@ -261,7 +262,7 @@ public class ArchivalUtil {
 		 * if (o.getInterpretation() != null) { queryString +=
 		 * o.getInterpretation().toString(); }
 		 */
-		System.out.println("Obs Query:" + queryString);
+		Logger.getAnonymousLogger().info("Obs Query:" + queryString);
 		return queryString;
 	}
 	

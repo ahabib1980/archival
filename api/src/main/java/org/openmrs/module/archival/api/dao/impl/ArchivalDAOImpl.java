@@ -6,14 +6,16 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
+
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
+
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
@@ -39,7 +41,6 @@ import org.openmrs.module.archival.api.dao.ArchivalDao;
 import org.openmrs.module.archival.util.ArchivalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class ArchivalDAOImpl implements ArchivalDao {
@@ -58,17 +59,6 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
-	
-	/*
-	 * public SessionFactory getSessionFactory() { return sessionFactory; }
-	 */
-	
-	/*
-	 * public DbSessionFactory getSessionFactory() { return sessionFactory; }
-	 * 
-	 * public void setSessionFactory(DbSessionFactory sessionFactory) {
-	 * this.sessionFactory = sessionFactory; }
-	 */
 	
 	@Override
 	public List<Patient> getPatientListForArchival(String query) {
@@ -90,10 +80,18 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		
 	}
 	
-	@Override
-	@Transactional
 	public void archiveEncounter(Encounter e, Set<EncounterProvider> epSet, Set<Obs> obsSet) {
 		
+<<<<<<< Updated upstream
+=======
+		//TODO: return detail based on how many archived, and how many failed
+		
+		Session session = sessionFactory.getCurrentSession();
+		if (session == null || !session.isConnected())
+			session = sessionFactory.openSession();
+		
+		Logger.getAnonymousLogger().info("ARCHIVING - " + e.getId());
+>>>>>>> Stashed changes
 		ArrayList<ObsWrapper> obsList = new ArrayList<ObsWrapper>();
 		
 		if (obsSet != null) {
@@ -105,6 +103,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		Collections.sort(obsList);
 		Collections.reverse(obsList);
 		
+<<<<<<< Updated upstream
 		Session session = sessionFactory.getCurrentSession();
 		
 		try {
@@ -129,36 +128,34 @@ public class ArchivalDAOImpl implements ArchivalDao {
 				System.out.println("DEL OBS: " + queryString);
 				Query query = session.createSQLQuery(queryString);
 				query.executeUpdate();
+=======
+		if (epSet != null) {
+			
+			for (EncounterProvider ep : epSet) {
+				session.saveOrUpdate(new ArchivedEncounterProvider(ep));
+				e.getEncounterProviders().remove(ep);
+				session.delete(ep);
+>>>>>>> Stashed changes
 			}
-			
-			session.saveOrUpdate(new ArchivedEncounter(e));
-			
-			Patient p = e.getPatient();
-			session.delete(e);
-			
-			PersonAttributeType pat = Context.getPersonService().getPersonAttributeTypeByName("Archived");
-			Person person = p.getPerson();
-			PersonAttribute pa = new PersonAttribute(pat, "Yes");
-			person.addAttribute(pa);
-			session.saveOrUpdate(person);
-			
 		}
 		
-		catch (ConstraintViolationException cve) {
-			System.out.print("CVE: ");
-			cve.printStackTrace();
+		for (ObsWrapper ow : obsList) {
 			
-			log.error(cve.getMessage());
-			//TODO Logging and proper handling
+			session.saveOrUpdate(new ArchivedObs(ow.getObs()));
+			
+			//query used here because OpenMRS technically does not apper to allow Obs to be edited as of v2.0
+			//so session.saveOrUpdate() fails with odd exceptions. A direct query works around this.
+			String queryString = "delete from Obs where obs_id=" + ow.getObs().getObsId();
+			Logger.getAnonymousLogger().info("DEL OBS: " + queryString);
+			Query query = session.createSQLQuery(queryString);
+			query.executeUpdate();
 		}
 		
-		catch (Exception ex) {
-			System.out.print("ERROR: ");
-			ex.printStackTrace();
-			
-			log.error(ex.getMessage());
-			//TODO Logging and proper handling
-		}
+		session.saveOrUpdate(new ArchivedEncounter(e));
+		
+		session.delete(e);
+		
+	
 		
 	}
 	
@@ -189,8 +186,6 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		ArrayList<PatientIdentifierType> pits = new ArrayList<PatientIdentifierType>();
 		pits.add(pit);
 		
-		Integer pitId = pit.getId();
-		
 		PersonAttributeType pat = Context.getPersonService().getPersonAttributeTypeByName("Archived");
 		
 		if (pat == null) {
@@ -202,6 +197,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		List<Patient> patList = null;
 		ArrayList<Patient> midList = new ArrayList<Patient>();
 		ArrayList<Patient> finalList = new ArrayList<Patient>();
+<<<<<<< Updated upstream
 		
 		/*
 		 * String query = null;
@@ -217,6 +213,8 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		 * 
 		 * }
 		 */
+=======
+>>>>>>> Stashed changes
 		
 		patList = Context.getPatientService().getPatients(name, identifier, pits, true);
 		
@@ -250,18 +248,17 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			
 		}
 		
-		if (finalList.size() != 0) {
-			for (Patient patient : finalList) {
-				System.out.println(patient.getId());
-			}
-		}
+		/*
+		 * if (finalList.size() != 0) { for (Patient patient : finalList) {
+		 * System.out.println(patient.getId()); } }
+		 */
 		
 		return finalList;
 	}
 	
 	@Override
-	@Transactional
 	public void retrieveArchivedPatient(Integer patientId) {
+<<<<<<< Updated upstream
 		log.info("ARCHIVAL - retrieving Patient: " + patientId);
 		List<ArchivedEncounter> aeList = getArchivedEncountersForPatient(patientId);
 		
@@ -272,6 +269,18 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			
 			//	tx = session.beginTransaction();
 			
+=======
+		
+		//TODO: Transaction Mgmt
+		Logger.getAnonymousLogger().info("ARCHIVAL - retrieving Patient: " + patientId);
+		List<ArchivedEncounter> aeList = getArchivedEncountersForPatient(patientId);
+		
+		Session session = sessionFactory.getCurrentSession();
+		
+		try {
+			
+			//this should all happen in a single Tx - either retrieve everything or nothing
+>>>>>>> Stashed changes
 			for (ArchivedEncounter ae : aeList) {
 				retrieveArchivedEncounter(ae, session);
 				
@@ -300,8 +309,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			//tx.commit();
 			PersonAttributeType pat = Context.getPersonService().getPersonAttributeTypeByName("Archived");
 			Person person = Context.getPatientService().getPatient(patientId).getPerson();
-			PersonAttribute pa = new PersonAttribute(pat, "No");
-			person.addAttribute(pa);
+			person.addAttribute(new PersonAttribute(pat, "No"));
 			session.saveOrUpdate(person);
 		}
 		
@@ -319,18 +327,25 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			//TODO Logging and proper handling
 		}
 		
+<<<<<<< Updated upstream
 		/*
 		 * finally { session.close(); }
 		 */
 		
+=======
+>>>>>>> Stashed changes
 	}
 	
 	@Override
 	public void retrieveArchivedEncounter(ArchivedEncounter ae, Session session) {
 		
+<<<<<<< Updated upstream
 		System.out.println("ARCHIVAL - retrieving E: " + ae.getEncounterId());
 		
 		//ArchivedEncounter ae = getArchivedEncounter(encounterId);
+=======
+		Logger.getAnonymousLogger().info("ARCHIVAL - retrieving E: " + ae.getEncounterId());
+>>>>>>> Stashed changes
 		
 		List<ArchivedEncounterProvider> aepList = getArchivedEncounterProvidersForArchivedEncounter(ae.getEncounterId());
 		List<ArchivedObs> aoList = getArchivedObsForArchivedEncounter(ae.getEncounterId());
@@ -355,6 +370,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			EncounterProvider ep = aep.getEncounterProvider();
 			ep.setEncounter(e);
 			
+<<<<<<< Updated upstream
 			System.out.println("_____________________");
 			System.out.println(ep.getUuid());
 			System.out.println(ep.getEncounter().getId());
@@ -365,6 +381,8 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			
 			//	System.out.println("ARCHIVAL - adding EP: " + ep.getEncounterProviderId());
 			
+=======
+>>>>>>> Stashed changes
 			epSet.add(ep);
 			aepDelList.add(aep);
 			epList.add(ep);
@@ -373,17 +391,23 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		}
 		
 		for (ArchivedObs ao : aoList) {
+<<<<<<< Updated upstream
 			//retrieveArchivedObs(ao.getArchivalObsId(), session);
 			//System.out.println("ARCHIVAL - retrieving Obs: " + ao.getObsId());
 			//ArchivedObs ao = getArchivedObs(obsId);
+=======
+>>>>>>> Stashed changes
 			
 			Obs o = ao.getObs();
 			o.setEncounter(e);
 			
+<<<<<<< Updated upstream
 			//System.out.println("ARCHIVAL - saving Obs: " + o.getObsId());
 			//session.saveOrUpdate(o);
 			
 			//session.delete(ao);
+=======
+>>>>>>> Stashed changes
 			oSet.add(o);
 			aoDelList.add(ao);
 			oList.add(o);
@@ -391,17 +415,16 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		
 		e.setEncounterProviders(epSet);
 		
-		for (EncounterProvider eps : e.getEncounterProviders()) {
-			System.out.println(" -- " + eps.getId() + " --");
-		}
 		e.setObs(oSet);
 		
+<<<<<<< Updated upstream
 		//session.saveOrUpdate(e);
 		
+=======
+>>>>>>> Stashed changes
 		//ADD ENCOUNTER
 		String encounterQuery = ArchivalUtil.eToQuery(e);
 		
-		System.out.println("QQ: " + encounterQuery);
 		Query query = session.createSQLQuery(encounterQuery);
 		query.executeUpdate();
 		
@@ -431,19 +454,11 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Override
 	public void retrieveArchivedEncounterProvider(Integer encounterProviderId, Session session) {
 		
-		System.out.println("ARCHIVAL - retrieving EP: " + encounterProviderId);
+		Logger.getAnonymousLogger().info("ARCHIVAL - retrieving EP: " + encounterProviderId);
 		
 		ArchivedEncounterProvider aep = getArchivedEncounterProvider(encounterProviderId);
 		
 		EncounterProvider ep = aep.getEncounterProvider();
-		
-		System.out.println("_____________________");
-		System.out.println(ep.getUuid());
-		System.out.println(ep.getEncounter().getId());
-		System.out.println(ep.getEncounterProviderId());
-		System.out.println(ep.getEncounterRole());
-		System.out.println(ep.getProvider().getId());
-		System.out.println("_____________________");
 		
 		session.saveOrUpdate(ep);
 		
@@ -454,7 +469,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Override
 	public void retrieveArchivedObs(Integer obsId, Session session) {
 		
-		System.out.println("ARCHIVAL - retrieving Obs: " + obsId);
+		Logger.getAnonymousLogger().info("ARCHIVAL - retrieving Obs: " + obsId);
 		ArchivedObs ao = getArchivedObs(obsId);
 		
 		Obs o = ao.getObs();

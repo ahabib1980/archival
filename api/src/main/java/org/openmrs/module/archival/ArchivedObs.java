@@ -477,7 +477,11 @@ public class ArchivedObs extends BaseOpenmrsData {
 		}
 		//o.getF
 		
-		if (this.getStatus().equals("FINAL")) {
+		if (this.getStatus() == null) {
+			o.setStatus(null);
+		}
+		
+		else if (this.getStatus().equals("FINAL")) {
 			o.setStatus(Status.FINAL);
 		} else if (this.getStatus().equals("AMENDED")) {
 			o.setStatus(Status.AMENDED);
