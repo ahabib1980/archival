@@ -48,8 +48,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	protected final Log log = LogFactory.getLog(this.getClass());
 	
 	@Autowired
-	//private DbSessionFactory sessionFactory;
-	//Original code. Commented due to Hibernate version conflicts. OpenMRS dependencies that came with SDK include Hibernate 3.x. SessionFactory requires  4.x
+	
 	private SessionFactory sessionFactory;
 	
 	public SessionFactory getSessionFactory() {
@@ -103,7 +102,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		
 		if (epSet != null) {
 			for (EncounterProvider ep : epSet) {
-				//archiveEncounterProvider(ep, session);
+				
 				session.saveOrUpdate(new ArchivedEncounterProvider(ep));
 				e.getEncounterProviders().remove(ep);
 				session.delete(ep);
@@ -248,8 +247,6 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		
 		System.out.println("ARCHIVAL - retrieving E: " + ae.getEncounterId());
 		
-		//ArchivedEncounter ae = getArchivedEncounter(encounterId);
-		
 		List<ArchivedEncounterProvider> aepList = getArchivedEncounterProvidersForArchivedEncounter(ae.getEncounterId());
 		List<ArchivedObs> aoList = getArchivedObsForArchivedEncounter(ae.getEncounterId());
 		
@@ -265,10 +262,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		Encounter e = ae.getEncounter();
 		
 		for (ArchivedEncounterProvider aep : aepList) {
-			//retrieveArchivedEncounterProvider(aep.getEncounterProviderId(), session);
-			//	System.out.println("ARCHIVAL - retrieving EP: " + aep.getEncounterProviderId());
 			
-			//ArchivedEncounterProvider aep = getArchivedEncounterProvider(encounterProviderId);
 			
 			EncounterProvider ep = aep.getEncounterProvider();
 			ep.setEncounter(e);
@@ -277,7 +271,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			aepDelList.add(aep);
 			epList.add(ep);
 			
-			//session.delete(aep);
+			
 		}
 		
 		for (ArchivedObs ao : aoList) {
