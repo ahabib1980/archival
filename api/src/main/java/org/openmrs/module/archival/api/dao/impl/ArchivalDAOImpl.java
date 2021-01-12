@@ -42,12 +42,9 @@ import org.openmrs.module.archival.util.ArchivalUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
 public class ArchivalDAOImpl implements ArchivalDao {
 	
 	protected final Log log = LogFactory.getLog(this.getClass());
-	
-	@Autowired
 	
 	private SessionFactory sessionFactory;
 	
@@ -84,8 +81,6 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		//TODO: return detail based on how many archived, and how many failed
 		
 		Session session = sessionFactory.getCurrentSession();
-		if (session == null || !session.isConnected())
-			session = sessionFactory.openSession();
 		
 		Logger.getAnonymousLogger().info("ARCHIVING - " + e.getId());
 		
@@ -263,14 +258,12 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		
 		for (ArchivedEncounterProvider aep : aepList) {
 			
-			
 			EncounterProvider ep = aep.getEncounterProvider();
 			ep.setEncounter(e);
 			
 			epSet.add(ep);
 			aepDelList.add(aep);
 			epList.add(ep);
-			
 			
 		}
 		

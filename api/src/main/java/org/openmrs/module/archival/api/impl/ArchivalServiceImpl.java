@@ -9,10 +9,12 @@
  */
 package org.openmrs.module.archival.api.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.openmrs.Encounter;
 import org.openmrs.EncounterProvider;
 import org.openmrs.Obs;
@@ -32,6 +34,8 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import ca.uhn.hl7v2.model.v26.group.EHC_E15_ADJUSTMENT_PAYEE;
+
 /**
  * Implementation of the main service of this module, which is exposed for other modules. See
  * moduleApplicationContext.xml on how it is wired up.
@@ -39,10 +43,8 @@ import org.springframework.transaction.annotation.Transactional;
  * @author ali.habib@ihsinformatics.com
  */
 
-@Service
 public class ArchivalServiceImpl extends BaseOpenmrsService implements ArchivalService {
 	
-	@Autowired
 	ArchivalDao dao;
 	
 	UserService userService;
@@ -77,13 +79,67 @@ public class ArchivalServiceImpl extends BaseOpenmrsService implements ArchivalS
 	}
 	
 	@Override
+	public List<Integer> getPatientEncounterIds(Integer patientId) {
+		List<Encounter> eList = null;
+		List<Integer> idList = new ArrayList<Integer>();
+		Patient patient = Context.getPatientService().getPatient(patientId);
+		eList = Context.getEncounterService().getEncounters(patient, null, null, null, null, null, null, null, null, true);
+		
+		for (Encounter e : eList) {
+			idList.add(e.getEncounterId());
+		}
+		
+		return idList;
+	}
+	
+	@Override
 	@Transactional
-	public void archiveEncounter(Encounter encounter) {
+	public Boolean archiveEncounter(Encounter encounter) {
 		Set<EncounterProvider> epSet = encounter.getEncounterProviders();
 		
 		Set<Obs> obsSet = encounter.getAllObs(true);
 		
-		dao.archiveEncounter(encounter, epSet, obsSet);
+		try {
+			dao.archiveEncounter(encounter, epSet, obsSet);
+			return Boolean.TRUE;
+		}
+		
+		catch (ConstraintViolationException cve) {
+			cve.printStackTrace();
+		}
+		
+		catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		
+		return Boolean.FALSE;
+		
+	}
+	
+	@Override
+	@Transactional
+	public Boolean archiveEncounter(Integer encounterId) {
+		
+		Encounter encounter = Context.getEncounterService().getEncounter(encounterId);
+		
+		Set<EncounterProvider> epSet = encounter.getEncounterProviders();
+		
+		Set<Obs> obsSet = encounter.getAllObs(true);
+		
+		try {
+			dao.archiveEncounter(encounter, epSet, obsSet);
+			return Boolean.TRUE;
+		}
+		
+		catch (ConstraintViolationException cve) {
+			cve.printStackTrace();
+		}
+		
+		catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		
+		return Boolean.FALSE;
 		
 	}
 	

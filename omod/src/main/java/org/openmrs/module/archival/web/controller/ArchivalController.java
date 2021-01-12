@@ -131,7 +131,7 @@ public class ArchivalController {
 			
 			List<Integer> archivedPatients = new ArrayList<Integer>();
 			List<Integer> failedArchivePatients = new ArrayList<Integer>();
-			List<Encounter> encs = new ArrayList<Encounter>();
+			List<Integer> encIds = new ArrayList<Integer>();
 			
 			int encounterCount = 0;
 			
@@ -141,12 +141,12 @@ public class ArchivalController {
 				Patient pat = Context.getPatientService().getPatient(Integer.parseInt(id));
 				
 				if (pat != null) {
-					encs = archivalService.getPatientEncounters(pat.getPatientId());
+					encIds = archivalService.getPatientEncounterIds(pat.getPatientId());
 					
-					for (Encounter e : encs) {
+					for (Integer encId : encIds) {
 						try {
 							
-							archivalService.archiveEncounter(e);
+							archivalService.archiveEncounter(encId);
 							encounterCount++;
 						}
 						

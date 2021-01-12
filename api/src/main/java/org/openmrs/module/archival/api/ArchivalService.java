@@ -53,6 +53,16 @@ public interface ArchivalService extends OpenmrsService {
 	List<Encounter> getPatientEncounters(Integer patientId) throws APIException;
 	
 	/**
+	 * Retrieves a list of patient encounter id's
+	 * 
+	 * @param patient id
+	 * @return list of id's for all encounters for a given patient
+	 * @throws
+	 */
+	
+	List<Integer> getPatientEncounterIds(Integer patientId) throws APIException;
+	
+	/**
 	 * Archives a list of patients
 	 * 
 	 * @param list of patients
@@ -86,11 +96,22 @@ public interface ArchivalService extends OpenmrsService {
 	 * Archives an encounter
 	 * 
 	 * @param Encounter
-	 * @return void
+	 * @return true if success, false if failure
 	 * @throws
 	 */
 	
-	void archiveEncounter(Encounter encounter);//, Set<EncounterProvider> epSet, Set<Obs> obsSet) throws APIException;
+	Boolean archiveEncounter(Encounter encounter);//, Set<EncounterProvider> epSet, Set<Obs> obsSet) throws APIException;
+	
+	/**
+	 * Archives an encounter
+	 * 
+	 * @param EncounterId
+	 * @return true if success, false if failure
+	 * @throws
+	 */
+	
+	
+	Boolean archiveEncounter(Integer encounterId);//, Set<EncounterProvider> epSet, Set<Obs> obsSet) throws APIException;
 	
 	/**
 	 * Returns a list of archived patients based on various criteria
