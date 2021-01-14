@@ -39,13 +39,7 @@ public interface ArchivalDao {
 	
 	List<Patient> getPatientListForArchival(String query);
 	
-	void archivePatient(Integer patientId);
-	
 	void archiveEncounter(Encounter e, Set<EncounterProvider> epSet, Set<Obs> obsSet);
-	
-	void archiveEncounterProvider(EncounterProvider ep, DbSession session);
-	
-	void archiveObs(Obs o, DbSession session);
 	
 	//for retrieval
 	

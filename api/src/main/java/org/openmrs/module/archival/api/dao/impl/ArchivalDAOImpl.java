@@ -70,12 +70,6 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		return list;
 	}
 	
-	@Override
-	public void archivePatient(Integer patientId) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 	public void archiveEncounter(Encounter e, Set<EncounterProvider> epSet, Set<Obs> obsSet) {
 		
 		//TODO: return detail based on how many archived, and how many failed
@@ -118,23 +112,17 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		
 		session.saveOrUpdate(new ArchivedEncounter(e));
 		
+		Person person = e.getPatient().getPerson();
+		PersonAttributeType paType = Context.getPersonService().getPersonAttributeTypeByName("Archived");
+		PersonAttribute pa = person.getAttribute(paType);
+		
+		if (pa == null || !pa.getValue().equals("Yes")) {
+			person.addAttribute(new PersonAttribute(paType, "Yes"));
+			session.saveOrUpdate(person);
+		}
+		
 		session.delete(e);
 		
-	}
-	
-	@Override
-	public void archiveEncounterProvider(EncounterProvider ep, DbSession session) throws ConstraintViolationException {
-		
-		session.saveOrUpdate(new ArchivedEncounterProvider(ep));
-		session.delete(ep);
-		
-	}
-	
-	@Override
-	public void archiveObs(Obs o, DbSession session) throws ConstraintViolationException {
-		
-		session.saveOrUpdate(new ArchivedObs(o));
-		session.delete(o);
 	}
 	
 	@Override
@@ -193,11 +181,6 @@ public class ArchivalDAOImpl implements ArchivalDao {
 			
 		}
 		
-		/*
-		 * if (finalList.size() != 0) { for (Patient patient : finalList) {
-		 * System.out.println(patient.getId()); } }
-		 */
-		
 		return finalList;
 	}
 	
@@ -240,7 +223,7 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Override
 	public void retrieveArchivedEncounter(ArchivedEncounter ae, Session session) {
 		
-		System.out.println("ARCHIVAL - retrieving E: " + ae.getEncounterId());
+		Logger.getAnonymousLogger().info("ARCHIVAL - retrieving E: " + ae.getEncounterId());
 		
 		List<ArchivedEncounterProvider> aepList = getArchivedEncounterProvidersForArchivedEncounter(ae.getEncounterId());
 		List<ArchivedObs> aoList = getArchivedObsForArchivedEncounter(ae.getEncounterId());

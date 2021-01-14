@@ -26,6 +26,9 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Hibernate;
 import org.openmrs.Encounter;
 import org.openmrs.Patient;
+import org.openmrs.Person;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
 import org.openmrs.EncounterProvider;
 import org.openmrs.Obs;
 import org.openmrs.api.APIException;
@@ -134,6 +137,10 @@ public class ArchivalController {
 			List<Integer> encIds = new ArrayList<Integer>();
 			
 			int encounterCount = 0;
+			Boolean archiveResult = null;
+			Person person = null;
+			
+			PersonAttributeType paType = Context.getPersonService().getPersonAttributeTypeByName("Archived");
 			
 			for (String id : patientArrayList) {
 				
@@ -146,8 +153,9 @@ public class ArchivalController {
 					for (Integer encId : encIds) {
 						try {
 							
-							archivalService.archiveEncounter(encId);
-							encounterCount++;
+							archiveResult = archivalService.archiveEncounter(encId);
+							if (archiveResult != null && archiveResult)
+								encounterCount++;
 						}
 						
 						catch (Exception ex) {
@@ -156,8 +164,9 @@ public class ArchivalController {
 					}
 					
 					if (encounterCount != 0) {
-						//tag as archived
-						//patientCount++;
+						//						person = pat.getPerson();
+						//						person.addAttribute(new PersonAttribute(paType, "Yes"));
+						//						Context.getPersonService().savePerson(person);
 						archivedPatients.add(pat.getId());
 					}
 					
@@ -167,7 +176,30 @@ public class ArchivalController {
 				}
 			}
 			
-			responseObj.addProperty("patientIds", patientIdArray);
+			String successArray = "";
+			for (Integer id : archivedPatients) {
+				successArray += id + ",";
+			}
+			
+			if (successArray.length() != 0)
+				successArray = successArray.substring(0, successArray.length() - 1);
+			
+			Logger.getAnonymousLogger().info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Success: " + successArray);
+			
+			String failureArray = "";
+			for (Integer id : failedArchivePatients) {
+				failureArray += id + ",";
+			}
+			
+			if (failureArray.length() != 0)
+				failureArray = failureArray.substring(0, failureArray.length() - 1);
+			
+			Logger.getAnonymousLogger().info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> failure: " + failureArray);
+			
+			//responseObj.addProperty("patientIds", patientIdArray);
+			responseObj.addProperty("successIds", successArray);
+			responseObj.addProperty("failureIds", failureArray);
+			
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -180,24 +212,25 @@ public class ArchivalController {
 	}
 	
 	@RequestMapping(method = RequestMethod.GET, value = "/module/archival/downloadReport.form" /*, produces = "application/pdf" */)
-	public ResponseEntity<byte[]> downloadReport(@RequestParam(value = "patientList", required = false) String patientIdArray)
-	        throws IOException {
+	public ResponseEntity<byte[]> downloadReport(
+	        @RequestParam(value = "successList", required = false) String successIdArray,
+	        @RequestParam(value = "failureList", required = false) String failureIdArray) throws IOException {
 		
-		ArrayList<String> patientArrayList = new ArrayList<String>();
-		if (patientIdArray.contains(",")) {
-			String[] patientIds = patientIdArray.split(",");
-			patientArrayList = (ArrayList<String>) Arrays.asList(patientIds);
+		ArrayList<String> successArrayList = new ArrayList<String>();
+		if (successIdArray.contains(",")) {
+			String[] successIds = successIdArray.split(",");
+			successArrayList = (ArrayList<String>) Arrays.asList(successIds);
 		} else
-			patientArrayList.add(patientIdArray);
+			successArrayList.add(successIdArray);
 		
-		List<PatientDto> patientDtos = new ArrayList<PatientDto>();
-		for (String id : patientArrayList) {
+		List<PatientDto> successDtos = new ArrayList<PatientDto>();
+		for (String id : successArrayList) {
 			Patient pat = Context.getPatientService().getPatient(Integer.parseInt(id));
-			patientDtos.add(new PatientDto(pat));
+			successDtos.add(new PatientDto(pat));
 		}
 		
-		InputStream inputStream = PdfReport.generateReport(patientDtos, Context.getAuthenticatedUser());
-		ByteArrayInputStream bis = PdfReport.generateReport(patientDtos, Context.getAuthenticatedUser());
+		InputStream inputStream = PdfReport.generateReport(successDtos, Context.getAuthenticatedUser());
+		ByteArrayInputStream bis = PdfReport.generateReport(successDtos, Context.getAuthenticatedUser());
 		byte[] bytes = org.apache.commons.io.IOUtils.toByteArray(inputStream);
 		
 		String filename = "archive_report_" + new Timestamp(System.currentTimeMillis()) + ".pdf";

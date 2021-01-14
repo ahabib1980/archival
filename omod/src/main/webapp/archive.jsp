@@ -258,14 +258,14 @@ body {
 			    				console.log(data);
 			    				if(data != null) {
 					    			if(data.status != "fail") {
-					    				var hrefValue = href = "${pageContext.request.contextPath}/module/archival/downloadReport.form?patientList=" + data.patientIds;
+					    				var hrefValue = href = "${pageContext.request.contextPath}/module/archival/downloadReport.form?successList=" + data.successIds + "&failureList=" + data.failureIds;
 					    				downloadLink.href = hrefValue;
 					    				var idArray = [];
-					    				var patientsIdString = data.patientIds;
+					    				var patientsIdString = data.successIds;
 					    				if (patientsIdString.indexOf(',') > -1)
 					    					idArray = data.patientIds.split(',');
 					    				else 
-					    					idArray.push(data.patientIds);
+					    					idArray.push(data.successIds);
 					    				console.log(idArray.length);
 					    				var totalCount = idArray.length;
 					    				jQuery("#count").text(totalCount.toString()); //javascript was not working

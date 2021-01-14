@@ -69,16 +69,6 @@ public class ArchivalServiceImpl extends BaseOpenmrsService implements ArchivalS
 	}
 	
 	@Override
-	public List<Encounter> getPatientEncounters(Integer patientId) {
-		List<Encounter> eList = null;
-		
-		Patient patient = Context.getPatientService().getPatient(patientId);
-		eList = Context.getEncounterService().getEncounters(patient, null, null, null, null, null, null, null, null, true);
-		
-		return eList;
-	}
-	
-	@Override
 	public List<Integer> getPatientEncounterIds(Integer patientId) {
 		List<Encounter> eList = null;
 		List<Integer> idList = new ArrayList<Integer>();
@@ -90,30 +80,6 @@ public class ArchivalServiceImpl extends BaseOpenmrsService implements ArchivalS
 		}
 		
 		return idList;
-	}
-	
-	@Override
-	@Transactional
-	public Boolean archiveEncounter(Encounter encounter) {
-		Set<EncounterProvider> epSet = encounter.getEncounterProviders();
-		
-		Set<Obs> obsSet = encounter.getAllObs(true);
-		
-		try {
-			dao.archiveEncounter(encounter, epSet, obsSet);
-			return Boolean.TRUE;
-		}
-		
-		catch (ConstraintViolationException cve) {
-			cve.printStackTrace();
-		}
-		
-		catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		
-		return Boolean.FALSE;
-		
 	}
 	
 	@Override
@@ -151,6 +117,7 @@ public class ArchivalServiceImpl extends BaseOpenmrsService implements ArchivalS
 	}
 	
 	@Override
+	@Transactional
 	public Boolean retrievePatient(Integer patientId) throws APIException {
 		// TODO check if patient archived (just in case)
 		

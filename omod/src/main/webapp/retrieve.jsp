@@ -277,6 +277,10 @@ body {
 
 	function retrievePatient(id) {
 		
+		var alertDiv = document.getElementById("retrievalAlert");
+		var successSpan = document.getElementById("successSpan");
+		var errorSpan = document.getElementById("errorSpan");
+		
 		jQuery.ajax({
 			type : "POST",
 			contentType : "application/json",
