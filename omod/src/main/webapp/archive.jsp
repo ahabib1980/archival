@@ -41,8 +41,8 @@ body {
 		</h2>
 	</div>
 	<div id="archivalAlert">
-		<span id="successSpan" class="success" style="display: none">Success!
-			A total of <span id="count">0</span> patients were successfully
+		<span id="successSpan" class="success" style="display: none">Result: 
+			<span id="succeed">0</span> of <span id="count">0</span> patients were successfully
 			archived <a id="downloadLink">Download</a>
 		</span><span id="errorSpan" class="error" style="display: none"></span>
 	</div>
@@ -267,7 +267,9 @@ body {
 					    				else 
 					    					idArray.push(data.successIds);
 					    				console.log(idArray.length);
-					    				var totalCount = idArray.length;
+					    				var totalCount = data.totalPatients;   // idArray.length;
+					    				var successCount = data.successCount;
+					    				jQuery("#succeed").text(successCount.toString());
 					    				jQuery("#count").text(totalCount.toString()); //javascript was not working
 					    				archiveLoader.style.visibility = "hidden";
 					    				alertDiv.style.display = "block";

@@ -164,9 +164,6 @@ public class ArchivalController {
 					}
 					
 					if (encounterCount != 0) {
-						//						person = pat.getPerson();
-						//						person.addAttribute(new PersonAttribute(paType, "Yes"));
-						//						Context.getPersonService().savePerson(person);
 						archivedPatients.add(pat.getId());
 					}
 					
@@ -196,7 +193,8 @@ public class ArchivalController {
 			
 			Logger.getAnonymousLogger().info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> failure: " + failureArray);
 			
-			//responseObj.addProperty("patientIds", patientIdArray);
+			responseObj.addProperty("totalPatients", patientArrayList.size());
+			responseObj.addProperty("successCount", archivedPatients.size());
 			responseObj.addProperty("successIds", successArray);
 			responseObj.addProperty("failureIds", failureArray);
 			
@@ -220,7 +218,7 @@ public class ArchivalController {
 		if (successIdArray.contains(",")) {
 			String[] successIds = successIdArray.split(",");
 			successArrayList = (ArrayList<String>) Arrays.asList(successIds);
-		} else
+		} else if (successIdArray.length() != 0)
 			successArrayList.add(successIdArray);
 		
 		List<PatientDto> successDtos = new ArrayList<PatientDto>();
@@ -229,8 +227,21 @@ public class ArchivalController {
 			successDtos.add(new PatientDto(pat));
 		}
 		
-		InputStream inputStream = PdfReport.generateReport(successDtos, Context.getAuthenticatedUser());
-		ByteArrayInputStream bis = PdfReport.generateReport(successDtos, Context.getAuthenticatedUser());
+		ArrayList<String> failureArrayList = new ArrayList<String>();
+		if (failureIdArray.contains(",")) {
+			String[] failureIds = failureIdArray.split(",");
+			failureArrayList = (ArrayList<String>) Arrays.asList(failureIds);
+		} else if (failureIdArray.length() != 0)
+			failureArrayList.add(failureIdArray);
+		
+		List<PatientDto> failureDtos = new ArrayList<PatientDto>();
+		for (String id : failureArrayList) {
+			Patient pat = Context.getPatientService().getPatient(Integer.parseInt(id));
+			failureDtos.add(new PatientDto(pat));
+		}
+		
+		InputStream inputStream = PdfReport.generateReport(successDtos, failureDtos, Context.getAuthenticatedUser());
+		//ByteArrayInputStream bis = PdfReport.generateReport(successDtos, failureDtos, Context.getAuthenticatedUser());
 		byte[] bytes = org.apache.commons.io.IOUtils.toByteArray(inputStream);
 		
 		String filename = "archive_report_" + new Timestamp(System.currentTimeMillis()) + ".pdf";

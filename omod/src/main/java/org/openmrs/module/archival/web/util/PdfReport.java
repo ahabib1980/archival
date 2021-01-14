@@ -45,7 +45,7 @@ import com.itextpdf.text.pdf.PdfWriter;
  */
 public class PdfReport {
 	
-	public static ByteArrayInputStream generateReport(List<PatientDto> patientDtos, User user) {
+	public static ByteArrayInputStream generateReport(List<PatientDto> successDtos, List<PatientDto> failureDtos, User user) {
 		
 		Document document = new Document(PageSize.A4, 80f, 80f, 50f, 0f);
 		float lineSpacing = 12f;
@@ -83,7 +83,7 @@ public class PdfReport {
 			
 			int serialNumber = 1;
 			
-			for (PatientDto patientDto : patientDtos) {
+			for (PatientDto successDto : successDtos) {
 				
 				PdfPCell cell;
 				
@@ -92,28 +92,93 @@ public class PdfReport {
 				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 				table.addCell(cell);
 				
-				cell = new PdfPCell(new Phrase(patientDto.getIdentifier(), tableDataFont));
+				cell = new PdfPCell(new Phrase(successDto.getIdentifier(), tableDataFont));
 				cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 				table.addCell(cell);
 				
-				cell = new PdfPCell(new Phrase(patientDto.getPatientName(), tableDataFont));
+				cell = new PdfPCell(new Phrase(successDto.getPatientName(), tableDataFont));
 				cell.setPaddingLeft(5);
 				cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 				table.addCell(cell);
 				
-				cell = new PdfPCell(new Phrase(patientDto.getGender(), tableDataFont));
+				cell = new PdfPCell(new Phrase(successDto.getGender(), tableDataFont));
 				cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 				cell.setPaddingRight(5);
 				table.addCell(cell);
 				
-				cell = new PdfPCell(new Phrase(patientDto.getDob(), tableDataFont));
+				cell = new PdfPCell(new Phrase(successDto.getDob(), tableDataFont));
 				cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 				cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 				cell.setPaddingRight(5);
 				table.addCell(cell);
+				
+				serialNumber++;
+			}
+			
+			PdfPTable failTable = new PdfPTable(5);
+			failTable.setWidthPercentage(80);
+			failTable.setWidths(new int[] { 2, 3, 4, 4, 4 });
+			
+			//Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11f);
+			//Font tableDataFont = FontFactory.getFont(FontFactory.HELVETICA, 11f);
+			
+			PdfPCell hfcell;
+			hfcell = new PdfPCell(new Phrase("S No.", headerFont));
+			hfcell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			failTable.addCell(hfcell);
+			
+			hfcell = new PdfPCell(new Phrase("Patient ID", headerFont));
+			hfcell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			failTable.addCell(hfcell);
+			
+			hfcell = new PdfPCell(new Phrase("Name", headerFont));
+			hfcell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			failTable.addCell(hfcell);
+			
+			hfcell = new PdfPCell(new Phrase("Gender", headerFont));
+			hfcell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			failTable.addCell(hfcell);
+			
+			hfcell = new PdfPCell(new Phrase("DOB", headerFont));
+			hfcell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			failTable.addCell(hfcell);
+			
+			serialNumber = 1;
+			
+			for (PatientDto failureDto : failureDtos) {
+				
+				PdfPCell fcell;
+				
+				fcell = new PdfPCell(new Phrase(String.valueOf(serialNumber), tableDataFont));
+				fcell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+				fcell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				failTable.addCell(fcell);
+				
+				fcell = new PdfPCell(new Phrase(failureDto.getIdentifier(), tableDataFont));
+				fcell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+				fcell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				failTable.addCell(fcell);
+				
+				fcell = new PdfPCell(new Phrase(failureDto.getPatientName(), tableDataFont));
+				fcell.setPaddingLeft(5);
+				fcell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+				fcell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				failTable.addCell(fcell);
+				
+				fcell = new PdfPCell(new Phrase(failureDto.getGender(), tableDataFont));
+				fcell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+				fcell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				fcell.setPaddingRight(5);
+				failTable.addCell(fcell);
+				
+				fcell = new PdfPCell(new Phrase(failureDto.getDob(), tableDataFont));
+				fcell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+				fcell.setHorizontalAlignment(Element.ALIGN_CENTER);
+				fcell.setPaddingRight(5);
+				failTable.addCell(fcell);
 				
 				serialNumber++;
 			}
@@ -125,7 +190,7 @@ public class PdfReport {
 			    FontFactory.HELVETICA_BOLD, 18f)));
 			Date date = new Date();
 			DateFormat dateFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss z");
-			String paraString = "Following were the patients that were archived in OpenMRS by "
+			String paraString = "Following were the patients that were successfully archived in OpenMRS by "
 			        + user.getPerson().getPersonName().getFullName() + " on " + dateFormat.format(date) + ".";
 			Paragraph detailPara = new Paragraph(new Phrase(lineSpacing, paraString, FontFactory.getFont(
 			    FontFactory.HELVETICA, 12f)));
@@ -135,6 +200,18 @@ public class PdfReport {
 			document.add(detailPara);
 			document.add(Chunk.NEWLINE);
 			document.add(table);
+			
+			document.add(Chunk.NEWLINE);
+			document.add(Chunk.NEWLINE);
+			String failString = "Following were the patients that failed archival in OpenMRS by "
+			        + user.getPerson().getPersonName().getFullName() + " on " + dateFormat.format(date) + ".";
+			Paragraph failPara = new Paragraph(new Phrase(lineSpacing, failString, FontFactory.getFont(
+			    FontFactory.HELVETICA, 12f)));
+			document.add(Chunk.NEWLINE);
+			document.add(failPara);
+			document.add(Chunk.NEWLINE);
+			document.add(failTable);
+			
 			document.close();
 			
 		}

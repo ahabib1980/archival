@@ -117,13 +117,21 @@ public class ArchivalServiceImpl extends BaseOpenmrsService implements ArchivalS
 	}
 	
 	@Override
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public Boolean retrievePatient(Integer patientId) throws APIException {
 		// TODO check if patient archived (just in case)
-		
+		//try {
 		dao.retrieveArchivedPatient(patientId);
-		
 		return Boolean.TRUE;
+		//}
+		
+		/*
+		 * catch (ConstraintViolationException cve) { cve.printStackTrace(); }
+		 * 
+		 * catch (Exception ex) { ex.printStackTrace(); }
+		 * 
+		 * return Boolean.FALSE;
+		 */
 	}
 	
 }

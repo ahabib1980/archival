@@ -61,10 +61,23 @@ public class ArchivalDAOImpl implements ArchivalDao {
 		ArrayList<Patient> list = new ArrayList<Patient>();
 		AdministrationService service = Context.getAdministrationService();
 		List<List<Object>> idList = service.executeSQL(query, true);
+		Patient patient = null;
+		PersonAttributeType pat = Context.getPersonService().getPersonAttributeTypeByName("Archived");
+		Person person = null;
+		PersonAttribute pa = null;
 		
 		for (List<Object> l : idList) {
 			Integer id = (Integer) (l.get(0));
-			list.add(Context.getPatientService().getPatient(id));
+			patient = Context.getPatientService().getPatient(id);
+			if (patient != null) {
+				person = patient.getPerson();
+				pa = person.getAttribute(pat.getId());
+				
+				//limit the returned list to patients who are not already archived
+				if (pa == null || pa.getValue().equals("No")) {
+					list.add(Context.getPatientService().getPatient(id));
+				}
+			}
 		}
 		
 		return list;
@@ -187,140 +200,144 @@ public class ArchivalDAOImpl implements ArchivalDao {
 	@Override
 	public void retrieveArchivedPatient(Integer patientId) {
 		
-		try {
+		//try {
+		
+		Logger.getAnonymousLogger().info("ARCHIVAL - retrieving Patient: " + patientId);
+		List<ArchivedEncounter> aeList = getArchivedEncountersForPatient(patientId);
+		
+		Session session = sessionFactory.getCurrentSession();
+		
+		//this should all happen in a single Tx - either retrieve everything or nothing
+		List<ArchivedEncounterProvider> aepList = null;
+		List<ArchivedObs> aoList = null;
+		
+		for (ArchivedEncounter ae : aeList) {
 			
-			Logger.getAnonymousLogger().info("ARCHIVAL - retrieving Patient: " + patientId);
-			List<ArchivedEncounter> aeList = getArchivedEncountersForPatient(patientId);
+			Logger.getAnonymousLogger().info("ARCHIVAL - retrieving E: " + ae.getEncounterId());
 			
-			Session session = sessionFactory.getCurrentSession();
+			aepList = getArchivedEncounterProvidersForArchivedEncounter(ae.getEncounterId());
+			aoList = getArchivedObsForArchivedEncounter(ae.getEncounterId());
 			
-			//this should all happen in a single Tx - either retrieve everything or nothing
+			Set<EncounterProvider> epSet = new HashSet<EncounterProvider>();
+			Set<Obs> oSet = new HashSet<Obs>();
 			
-			for (ArchivedEncounter ae : aeList) {
-				retrieveArchivedEncounter(ae, session);
+			ArrayList<EncounterProvider> epList = new ArrayList<EncounterProvider>();
+			ArrayList<Obs> oList = new ArrayList<Obs>();
+			
+			List<ArchivedEncounterProvider> aepDelList = new ArrayList<ArchivedEncounterProvider>();
+			List<ArchivedObs> aoDelList = new ArrayList<ArchivedObs>();
+			
+			Encounter e = ae.getEncounter();
+			
+			for (ArchivedEncounterProvider aep : aepList) {
+				
+				EncounterProvider ep = aep.getEncounterProvider();
+				ep.setEncounter(e);
+				
+				epSet.add(ep);
+				aepDelList.add(aep);
+				epList.add(ep);
 				
 			}
 			
-			PersonAttributeType pat = Context.getPersonService().getPersonAttributeTypeByName("Archived");
-			Person person = Context.getPatientService().getPatient(patientId).getPerson();
-			person.addAttribute(new PersonAttribute(pat, "No"));
-			session.saveOrUpdate(person);
-		}
-		
-		catch (ConstraintViolationException cve) {
-			cve.printStackTrace();
-			//	tx.rollback();
-			//TODO Logging and proper handling
-		}
-		
-		catch (Exception ex) {
-			ex.printStackTrace();
+			for (ArchivedObs ao : aoList) {
+				
+				Obs o = ao.getObs();
+				o.setEncounter(e);
+				
+				oSet.add(o);
+				aoDelList.add(ao);
+				oList.add(o);
+			}
 			
-		}
-		
-	}
-	
-	@Override
-	public void retrieveArchivedEncounter(ArchivedEncounter ae, Session session) {
-		
-		Logger.getAnonymousLogger().info("ARCHIVAL - retrieving E: " + ae.getEncounterId());
-		
-		List<ArchivedEncounterProvider> aepList = getArchivedEncounterProvidersForArchivedEncounter(ae.getEncounterId());
-		List<ArchivedObs> aoList = getArchivedObsForArchivedEncounter(ae.getEncounterId());
-		
-		Set<EncounterProvider> epSet = new HashSet<EncounterProvider>();
-		Set<Obs> oSet = new HashSet<Obs>();
-		
-		ArrayList<EncounterProvider> epList = new ArrayList<EncounterProvider>();
-		ArrayList<Obs> oList = new ArrayList<Obs>();
-		
-		List<ArchivedEncounterProvider> aepDelList = new ArrayList<ArchivedEncounterProvider>();
-		List<ArchivedObs> aoDelList = new ArrayList<ArchivedObs>();
-		
-		Encounter e = ae.getEncounter();
-		
-		for (ArchivedEncounterProvider aep : aepList) {
+			e.setEncounterProviders(epSet);
 			
-			EncounterProvider ep = aep.getEncounterProvider();
-			ep.setEncounter(e);
+			e.setObs(oSet);
 			
-			epSet.add(ep);
-			aepDelList.add(aep);
-			epList.add(ep);
+			//ADD ENCOUNTER
+			String encounterQuery = ArchivalUtil.eToQuery(e);
 			
-		}
-		
-		for (ArchivedObs ao : aoList) {
-			
-			Obs o = ao.getObs();
-			o.setEncounter(e);
-			
-			oSet.add(o);
-			aoDelList.add(ao);
-			oList.add(o);
-		}
-		
-		e.setEncounterProviders(epSet);
-		
-		e.setObs(oSet);
-		
-		//ADD ENCOUNTER
-		String encounterQuery = ArchivalUtil.eToQuery(e);
-		
-		Query query = session.createSQLQuery(encounterQuery);
-		query.executeUpdate();
-		
-		for (EncounterProvider ep : epList) {
-			String epQuery = ArchivalUtil.epToQuery(ep);
-			query = session.createSQLQuery(epQuery);
-			query.executeUpdate();
-		}
-		
-		for (Obs o : oList) {
-			String oQuery = ArchivalUtil.oToQuery(o);
-			query = session.createSQLQuery(oQuery);
+			Query query = session.createSQLQuery(encounterQuery);
 			query.executeUpdate();
 			
+			for (EncounterProvider ep : epList) {
+				String epQuery = ArchivalUtil.epToQuery(ep);
+				query = session.createSQLQuery(epQuery);
+				query.executeUpdate();
+			}
+			
+			for (Obs o : oList) {
+				String oQuery = ArchivalUtil.oToQuery(o);
+				query = session.createSQLQuery(oQuery);
+				query.executeUpdate();
+				
+			}
+			
+			session.delete(ae);
+			
+			for (ArchivedEncounterProvider delAep : aepDelList) {
+				session.delete(delAep);
+			}
+			
+			for (ArchivedObs delAo : aoDelList) {
+				session.delete(delAo);
+			}
+			
 		}
 		
-		/*
-		 * for (ArchivedEncounterProvider aep : aepDelList) { session.delete(aep); }
-		 * 
-		 * for (ArchivedObs ao : aoDelList) { session.delete(ao); }
-		 * 
-		 * session.delete(ae);
-		 */
+		PersonAttributeType pat = Context.getPersonService().getPersonAttributeTypeByName("Archived");
+		Person person = Context.getPatientService().getPatient(patientId).getPerson();
+		person.addAttribute(new PersonAttribute(pat, "No"));
+		session.saveOrUpdate(person);
 		
 	}
 	
-	@Override
-	public void retrieveArchivedEncounterProvider(Integer encounterProviderId, Session session) {
-		
-		Logger.getAnonymousLogger().info("ARCHIVAL - retrieving EP: " + encounterProviderId);
-		
-		ArchivedEncounterProvider aep = getArchivedEncounterProvider(encounterProviderId);
-		
-		EncounterProvider ep = aep.getEncounterProvider();
-		
-		session.saveOrUpdate(ep);
-		
-		session.delete(aep);
-		
-	}
+	//@Override
+	//public void retrieveArchivedEncounter(ArchivedEncounter ae, Session session) {
 	
-	@Override
-	public void retrieveArchivedObs(Integer obsId, Session session) {
-		
-		Logger.getAnonymousLogger().info("ARCHIVAL - retrieving Obs: " + obsId);
-		ArchivedObs ao = getArchivedObs(obsId);
-		
-		Obs o = ao.getObs();
-		
-		session.saveOrUpdate(o);
-		
-		session.delete(ao);
-		
-	}
+	/*
+	 * for (ArchivedEncounterProvider aep : aepDelList) { session.delete(aep); }
+	 * 
+	 * for (ArchivedObs ao : aoDelList) { session.delete(ao); }
+	 * 
+	 * session.delete(ae);
+	 */
+	
+	//}
+	
+	/*
+	 * @Override public void retrieveArchivedEncounterProvider(Integer
+	 * encounterProviderId, Session session) {
+	 * 
+	 * Logger.getAnonymousLogger().info("ARCHIVAL - retrieving EP: " +
+	 * encounterProviderId);
+	 * 
+	 * ArchivedEncounterProvider aep =
+	 * getArchivedEncounterProvider(encounterProviderId);
+	 * 
+	 * EncounterProvider ep = aep.getEncounterProvider();
+	 * 
+	 * session.saveOrUpdate(ep);
+	 * 
+	 * session.delete(aep);
+	 * 
+	 * }
+	 */
+	
+	/*
+	 * @Override public void retrieveArchivedObs(Integer obsId, Session session) {
+	 * 
+	 * Logger.getAnonymousLogger().info("ARCHIVAL - retrieving Obs: " + obsId);
+	 * ArchivedObs ao = getArchivedObs(obsId);
+	 * 
+	 * Obs o = ao.getObs();
+	 * 
+	 * session.saveOrUpdate(o);
+	 * 
+	 * session.delete(ao);
+	 * 
+	 * }
+	 */
 	
 	@Override
 	public ArchivedEncounter getArchivedEncounter(Integer encounterId) {
