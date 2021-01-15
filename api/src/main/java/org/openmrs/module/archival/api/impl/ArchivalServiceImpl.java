@@ -83,7 +83,7 @@ public class ArchivalServiceImpl extends BaseOpenmrsService implements ArchivalS
 	}
 	
 	@Override
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public Boolean archiveEncounter(Integer encounterId) {
 		
 		Encounter encounter = Context.getEncounterService().getEncounter(encounterId);
@@ -92,20 +92,18 @@ public class ArchivalServiceImpl extends BaseOpenmrsService implements ArchivalS
 		
 		Set<Obs> obsSet = encounter.getAllObs(true);
 		
-		try {
-			dao.archiveEncounter(encounter, epSet, obsSet);
-			return Boolean.TRUE;
-		}
+		//try {
+		dao.archiveEncounter(encounter, epSet, obsSet);
+		return Boolean.TRUE;
+		//}
 		
-		catch (ConstraintViolationException cve) {
-			cve.printStackTrace();
-		}
-		
-		catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		
-		return Boolean.FALSE;
+		/*
+		 * catch (ConstraintViolationException cve) { cve.printStackTrace(); }
+		 * 
+		 * catch (Exception ex) { ex.printStackTrace(); }
+		 * 
+		 * return Boolean.FALSE;
+		 */
 		
 	}
 	

@@ -58,7 +58,57 @@ body {
 			<div class="row">
 				<div class="col-md-12">
 					<span id="queryError" class="text-danger "> </span>
-					<textarea class="form-control" name="query" id="query" rows="4" cols="182"></textarea>
+					<textarea class="form-control" name="query" id="query" rows="4" cols="182">
+					select pt.patient_id, enc.encounter_datetime, obs_cxr.value_coded, obs_gxp.value_coded, obs_fast_tx.value_coded, obs_ctb_tx.value_coded,
+obs_inf_elg.value_coded, enc_cli_eva.encounter_datetime  from openmrs.patient pt
+inner join openmrs.encounter enc on pt.patient_id = enc.patient_id and 
+	enc.encounter_id = (SELECT encounter_id
+				FROM openmrs.encounter
+				WHERE patient_id=pt.PATIENT_ID
+				ORDER BY encounter_datetime DESC LIMIT 1)  
+left join openmrs.encounter enc_cxr on pt.patient_id = enc_cxr.patient_id and enc_cxr.encounter_type = 186 and
+enc_cxr.encounter_id = (SELECT encounter_id
+				FROM openmrs.encounter
+				WHERE patient_id=pt.PATIENT_ID and encounter_type = 186
+				ORDER BY encounter_datetime DESC LIMIT 1) 
+left join openmrs.obs obs_cxr on enc_cxr.encounter_id = obs_cxr.encounter_id and obs_cxr.concept_id = 165835       
+left join openmrs.encounter enc_gxp on pt.patient_id = enc_gxp.patient_id and enc_gxp.encounter_type = 172 and
+enc_gxp.encounter_id = (SELECT encounter_id
+				FROM openmrs.encounter
+				WHERE patient_id=pt.PATIENT_ID and encounter_type = 172
+				ORDER BY encounter_datetime DESC LIMIT 1) 
+left join openmrs.obs obs_gxp on enc_gxp.encounter_id = obs_gxp.encounter_id and obs_gxp.concept_id = 162202
+left join openmrs.encounter enc_fast_tx on pt.patient_id = enc_fast_tx.patient_id and enc_fast_tx.encounter_type = 29 and
+enc_fast_tx.encounter_id = (SELECT encounter_id
+				FROM openmrs.encounter
+				WHERE patient_id=pt.PATIENT_ID and encounter_type = 29
+				ORDER BY encounter_datetime DESC LIMIT 1) 
+left join openmrs.obs obs_fast_tx on enc_fast_tx.encounter_id = obs_fast_tx.encounter_id and obs_fast_tx.concept_id = 164885 
+left join openmrs.encounter enc_ctb_tx on pt.patient_id = enc_ctb_tx.patient_id and enc_ctb_tx.encounter_type = 210 and
+enc_ctb_tx.encounter_id = (SELECT encounter_id
+				FROM openmrs.encounter
+				WHERE patient_id=pt.PATIENT_ID and encounter_type = 210
+				ORDER BY encounter_datetime DESC LIMIT 1) 
+left join openmrs.obs obs_ctb_tx on enc_ctb_tx.encounter_id = obs_ctb_tx.encounter_id and obs_ctb_tx.concept_id = 164137 
+left join openmrs.encounter enc_inf_elg on pt.patient_id = enc_inf_elg.patient_id and enc_inf_elg.encounter_type = 3 and
+enc_inf_elg.encounter_id = (SELECT encounter_id
+				FROM openmrs.encounter
+				WHERE patient_id=pt.PATIENT_ID and encounter_type = 3
+				ORDER BY encounter_datetime DESC LIMIT 1) 
+left join openmrs.obs obs_inf_elg on enc_inf_elg.encounter_id = obs_inf_elg.encounter_id and obs_inf_elg.concept_id = 164228  
+left join openmrs.encounter enc_cli_eva on enc_inf_elg.patient_id = enc_cli_eva.patient_id and enc_cli_eva.encounter_type = 208 and
+enc_cli_eva.encounter_id = (SELECT encounter_id
+				FROM openmrs.encounter
+				WHERE patient_id=pt.PATIENT_ID and encounter_type = 208
+				ORDER BY encounter_datetime DESC LIMIT 1)   
+where date(enc.encounter_datetime) < date('2019-07-01')
+and (obs_cxr.value_coded != 1065 or obs_cxr.value_coded is null)
+and (obs_gxp.value_coded != 1301 or obs_gxp.value_coded is null)
+and (obs_fast_tx.value_coded != 1065 or obs_fast_tx.value_coded is null)
+and (obs_ctb_tx.value_coded != 1065 or obs_ctb_tx.value_coded is null)
+and (obs_inf_elg.value_coded != 1065 or obs_inf_elg.value_coded is null)
+and enc_cli_eva.encounter_datetime is null LIMIT 10
+					</textarea>
 				</div>
 			</div>
 			<div class="row">
@@ -263,7 +313,7 @@ body {
 					    				var idArray = [];
 					    				var patientsIdString = data.successIds;
 					    				if (patientsIdString.indexOf(',') > -1)
-					    					idArray = data.patientIds.split(',');
+					    					idArray = data.successIds.split(',');
 					    				else 
 					    					idArray.push(data.successIds);
 					    				console.log(idArray.length);

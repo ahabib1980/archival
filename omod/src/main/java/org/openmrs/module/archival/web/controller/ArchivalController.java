@@ -217,7 +217,10 @@ public class ArchivalController {
 		ArrayList<String> successArrayList = new ArrayList<String>();
 		if (successIdArray.contains(",")) {
 			String[] successIds = successIdArray.split(",");
-			successArrayList = (ArrayList<String>) Arrays.asList(successIds);
+			//successArrayList = (ArrayList<String>) Arrays.asList(successIds);
+			for (int i = 0; i < successIds.length; i++) {
+				successArrayList.add(successIds[i]);
+			}
 		} else if (successIdArray.length() != 0)
 			successArrayList.add(successIdArray);
 		
@@ -230,7 +233,9 @@ public class ArchivalController {
 		ArrayList<String> failureArrayList = new ArrayList<String>();
 		if (failureIdArray.contains(",")) {
 			String[] failureIds = failureIdArray.split(",");
-			failureArrayList = (ArrayList<String>) Arrays.asList(failureIds);
+			for (int i = 0; i < failureIds.length; i++) {
+				failureArrayList.add(failureIds[i]);
+			}
 		} else if (failureIdArray.length() != 0)
 			failureArrayList.add(failureIdArray);
 		
